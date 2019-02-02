@@ -1,4 +1,4 @@
-package com.walshydev.streamdeck4j;
+package com.walshydev.streamdeck4j.info;
 
 public enum Destination {
 

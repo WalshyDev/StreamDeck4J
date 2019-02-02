@@ -1,6 +1,6 @@
 package com.walshydev.streamdeck4j;
 
-public enum Event {
+public enum SDEvent {
 
     SET_TITLE("setTitle", true),
     SET_IMAGE("setImage", true),
@@ -26,18 +26,18 @@ public enum Event {
     private boolean hasContext;
     private boolean receiveEvent;
 
-    Event(String name) {
+    SDEvent(String name) {
         this.name = name;
         this.hasContext = false;
         this.receiveEvent = false;
     }
 
-    Event(String name, boolean hasContext) {
+    SDEvent(String name, boolean hasContext) {
         this.name = name;
         this.hasContext = hasContext;
     }
 
-    Event(String name, boolean hasContext, boolean receiveEvent) {
+    SDEvent(String name, boolean hasContext, boolean receiveEvent) {
         this.name = name;
         this.hasContext = hasContext;
         this.receiveEvent = receiveEvent;

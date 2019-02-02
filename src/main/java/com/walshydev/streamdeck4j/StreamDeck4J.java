@@ -2,13 +2,22 @@ package com.walshydev.streamdeck4j;
 
 import com.google.gson.Gson;
 import com.google.gson.JsonObject;
+import com.google.gson.JsonParser;
+import com.google.gson.reflect.TypeToken;
 import com.neovisionaries.ws.client.WebSocket;
 import com.neovisionaries.ws.client.WebSocketAdapter;
 import com.neovisionaries.ws.client.WebSocketException;
 import com.neovisionaries.ws.client.WebSocketFactory;
 import com.neovisionaries.ws.client.WebSocketFrame;
 import com.neovisionaries.ws.client.WebSocketState;
-import lombok.NonNull;
+import com.walshydev.streamdeck4j.events.ActionAppearedEvent;
+import com.walshydev.streamdeck4j.events.DeviceConnectedEvent;
+import com.walshydev.streamdeck4j.events.Event;
+import com.walshydev.streamdeck4j.hooks.EventListener;
+import com.walshydev.streamdeck4j.info.Application;
+import com.walshydev.streamdeck4j.info.Coordinates;
+import com.walshydev.streamdeck4j.info.Destination;
+import com.walshydev.streamdeck4j.info.Device;
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.CommandLineParser;
 import org.apache.commons.cli.DefaultParser;
@@ -17,11 +26,16 @@ import org.apache.commons.cli.ParseException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 import java.io.IOException;
+import java.lang.reflect.Type;
 import java.net.URL;
 import java.util.Arrays;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.UUID;
 
 public class StreamDeck4J {
@@ -29,10 +43,14 @@ public class StreamDeck4J {
     private static final Logger logger = LoggerFactory.getLogger(StreamDeck4J.class);
 
     private final Gson gson = new Gson();
+    private final JsonParser parser = new JsonParser();
+    private final Set<EventListener> listeners = new HashSet<>();
 
     private CommandLine cmd;
     private WebSocket ws;
     private UUID pluginUUID;
+    private Application application;
+    private Set<Device> devices;
     private boolean registered = false;
 
     /**
@@ -78,6 +96,14 @@ public class StreamDeck4J {
         }
 
         this.pluginUUID = UUID.fromString(cmd.getOptionValue("pluginUUID"));
+
+        // Parse the info argument passed in, from this we can get the application info and also what devices are
+        // connected
+        JsonObject infoObj = new JsonParser().parse(cmd.getOptionValue("info")).getAsJsonObject();
+        this.application = gson.fromJson(infoObj.get("application").getAsJsonObject(), Application.class);
+        Type devicesType = new TypeToken<Set<Device>>() {
+        }.getType();
+        this.devices = gson.fromJson(infoObj.get("devices").getAsJsonArray(), devicesType);
 
         try {
             logger.debug("Creating websocket at 'ws://localhost:{}'", cmd.getOptionValue("port"));
@@ -136,6 +162,74 @@ public class StreamDeck4J {
 
             public void onTextMessage(WebSocket websocket, String text) {
                 logger.trace("onTextMessage - {}", text);
+
+                // We should be safe to assume this, if we get anything else at least we have the TRACE log to figure
+                // out what
+                JsonObject jsonObject = parser.parse(text).getAsJsonObject();
+
+                if (!jsonObject.has("event")) {
+                    logger.error("Received JSON but without an event field! JSON: " + jsonObject.toString());
+                    return;
+                }
+
+                // All current known receive events:
+                //keyDown
+                //keyUp
+                //willAppear
+                //willDisappear
+                //titleParametersDidChange
+                //deviceDidConnect
+                //deviceDidDisconnect
+                //applicationDidLaunch
+                //applicationDidTerminate
+
+                Event toSend = null;
+
+                switch (jsonObject.get("event").getAsString()) {
+                    case "keyDown":
+                    case "keyUp":
+                        logger.warn("'{}' isn't implemented yet! Sorry!", jsonObject.get("event").getAsString());
+                        break;
+                    case "willAppear":
+                        JsonObject payload = jsonObject.get("payload").getAsJsonObject();
+
+                        toSend = new ActionAppearedEvent(
+                            jsonObject.get("context").getAsString(),
+                            jsonObject.get("action").getAsString(),
+                            jsonObject.get("device").getAsString(),
+                            // Payload data
+                            payload.get("settings").getAsJsonObject(),
+                            gson.fromJson(payload.get("coordinates").getAsJsonObject(), Coordinates.class),
+                            payload.has("state") ? payload.get("state").getAsInt() : 0,
+                            payload.get("isInMultiAction").getAsBoolean()
+                        );
+                        break;
+                    case "willDisappear":
+                    case "titleParametersDidChange":
+                        logger.warn("'{}' isn't implemented yet! Sorry!", jsonObject.get("event").getAsString());
+                        break;
+                    case "deviceDidConnect":
+                        toSend = new DeviceConnectedEvent(null, jsonObject.get("device").getAsString());
+                        break;
+                    case "deviceDidDisconnect":
+                    case "applicationDidLaunch":
+                    case "applicationDidTerminate":
+                        logger.warn("'{}' isn't implemented yet! Sorry!", jsonObject.get("event").getAsString());
+                    default:
+                        logger.warn(
+                            "Received unknown event! '{}' - Ignoring for now!",
+                            jsonObject.get("event").getAsString()
+                        );
+                        break;
+                }
+
+                if (toSend == null)
+                    return;
+
+                logger.trace("Firing event: {} to {} listeners.", toSend.getClass().getSimpleName(), listeners.size());
+
+                for (EventListener listener : listeners)
+                    listener.onEvent(toSend);
             }
 
             public void onError(WebSocket websocket, WebSocketException cause) {
@@ -166,32 +260,41 @@ public class StreamDeck4J {
         ws.connectAsynchronously();
     }
 
-    public void openURL(URL url) {
-        JsonObject obj = new JsonObject();
-        obj.addProperty("event", "openUrl");
-
-        JsonObject payload = new JsonObject();
-        payload.addProperty("url", url.toString());
-        obj.add("payload", payload);
-
-        sendPayload(obj);
+    public void addListener(EventListener eventListener) {
+        this.listeners.add(eventListener);
     }
 
-    public void setTitle(String title, Destination destination) {
+    public void openURL(URL url) {
+        JsonObject payload = new JsonObject();
+        payload.addProperty("url", url.toString());
+
+        sendEvent(SDEvent.OPEN_URL, payload);
+    }
+
+    public void setTitle(String title, Destination destination, String context) {
         JsonObject obj = new JsonObject();
         obj.addProperty("title", title);
         obj.addProperty("target", destination.ordinal());
-        sendEvent(Event.SET_TITLE, obj);
+        sendEvent(SDEvent.SET_TITLE, obj, context);
     }
 
-    private void sendEvent(Event event, JsonObject payload) {
+    private void sendEvent(@Nonnull SDEvent event, @Nonnull JsonObject payload) {
+        if (event.hasContext())
+            throw new IllegalArgumentException("No context passed but " + event.getName() + " needs one!");
+
+        sendEvent(event, payload, null);
+    }
+
+    private void sendEvent(@Nonnull SDEvent event, @Nonnull JsonObject payload, @Nullable String context) {
+        if (context == null && event.hasContext())
+            throw new IllegalArgumentException("No context passed but " + event.getName() + " needs one!");
+
         JsonObject eventJson = new JsonObject();
         eventJson.addProperty("event", event.getName());
         if (event.hasContext())
-            eventJson.addProperty("context", -1); //TODO: Figure out what this is
+            eventJson.addProperty("context", context);
 
-        if (payload != null)
-            eventJson.add("payload", payload);
+        eventJson.add("payload", payload);
 
         sendPayload(eventJson);
     }
