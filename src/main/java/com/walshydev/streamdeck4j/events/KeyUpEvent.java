@@ -2,9 +2,11 @@ package com.walshydev.streamdeck4j.events;
 
 import com.google.gson.JsonObject;
 import com.walshydev.streamdeck4j.info.Coordinates;
+import lombok.Getter;
 
 import javax.annotation.Nonnull;
 
+@Getter
 public class KeyUpEvent extends Event {
 
     private final String action;
