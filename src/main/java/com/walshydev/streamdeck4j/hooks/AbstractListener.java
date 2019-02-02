@@ -3,14 +3,20 @@ package com.walshydev.streamdeck4j.hooks;
 // TODO: Document
 
 import com.walshydev.streamdeck4j.events.ActionAppearedEvent;
+import com.walshydev.streamdeck4j.events.ActionDisappearedEvent;
 import com.walshydev.streamdeck4j.events.Event;
 import com.walshydev.streamdeck4j.events.DeviceConnectedEvent;
+import com.walshydev.streamdeck4j.events.KeyDownEvent;
+import com.walshydev.streamdeck4j.events.KeyUpEvent;
 import org.slf4j.LoggerFactory;
 
 public abstract class AbstractListener implements EventListener {
 
     public void onDeviceConnected(DeviceConnectedEvent event) {}
     public void onActionAppeared(ActionAppearedEvent event) {}
+    public void onActionDisappeared(ActionDisappearedEvent event) {}
+    public void onKeyDown(KeyDownEvent event) {}
+    public void onKeyUp(KeyUpEvent event) {}
 
     @Override
     public final void onEvent(Event event) {
@@ -18,6 +24,12 @@ public abstract class AbstractListener implements EventListener {
             onDeviceConnected((DeviceConnectedEvent) event);
         else if (event instanceof ActionAppearedEvent)
             onActionAppeared((ActionAppearedEvent) event);
+        else if (event instanceof ActionDisappearedEvent)
+            onActionDisappeared((ActionDisappearedEvent) event);
+        else if (event instanceof KeyDownEvent)
+            onKeyDown((KeyDownEvent) event);
+        else if (event instanceof KeyUpEvent)
+            onKeyUp((KeyUpEvent) event);
 
         else
             LoggerFactory.getLogger(AbstractListener.class)

@@ -13,6 +13,8 @@ import com.neovisionaries.ws.client.WebSocketState;
 import com.walshydev.streamdeck4j.events.ActionAppearedEvent;
 import com.walshydev.streamdeck4j.events.DeviceConnectedEvent;
 import com.walshydev.streamdeck4j.events.Event;
+import com.walshydev.streamdeck4j.events.KeyDownEvent;
+import com.walshydev.streamdeck4j.events.KeyUpEvent;
 import com.walshydev.streamdeck4j.hooks.EventListener;
 import com.walshydev.streamdeck4j.info.Application;
 import com.walshydev.streamdeck4j.info.Coordinates;
@@ -73,6 +75,9 @@ public class StreamDeck4J {
         }));
     }
 
+    //////////////////////////
+    // INTERNALS
+    //////////////////////////
     private void parseArguments(String[] args) {
         Options options = new Options();
         options.addOption("port", true, "The websocket port to connect with");
@@ -131,6 +136,7 @@ public class StreamDeck4J {
                     sendPayload(registerJson);
                     registered = true;
                 }
+                logger.info("Connected to the WebSocket!");
             }
 
             public void onConnectError(WebSocket websocket, WebSocketException exception) {
@@ -172,26 +178,68 @@ public class StreamDeck4J {
                     return;
                 }
 
+                final String event = jsonObject.get("event").getAsString();
+
+                JsonObject payload = null;
+                if (jsonObject.has("payload"))
+                    payload = jsonObject.get("payload").getAsJsonObject();
+
                 // All current known receive events:
-                //keyDown
-                //keyUp
-                //willAppear
+                //[X] keyDown
+                //[X] keyUp
+                //[X] willAppear
                 //willDisappear
                 //titleParametersDidChange
-                //deviceDidConnect
+                //[X] deviceDidConnect
                 //deviceDidDisconnect
                 //applicationDidLaunch
                 //applicationDidTerminate
 
                 Event toSend = null;
 
-                switch (jsonObject.get("event").getAsString()) {
+                switch (event) {
                     case "keyDown":
+                        if (payload == null) {
+                            logger.error("Invalid JSON for {}", event);
+                            break;
+                        }
+
+                        toSend = new KeyDownEvent(
+                            jsonObject.get("context").getAsString(),
+                            jsonObject.get("action").getAsString(),
+                            jsonObject.get("device").getAsString(),
+                            // Payload data
+                            payload.get("settings").getAsJsonObject(),
+                            gson.fromJson(payload.get("coordinates").getAsJsonObject(), Coordinates.class),
+                            payload.has("state") ? payload.get("state").getAsInt() : 0,
+                            payload.has("userDesiredState") ? payload.get("userDesiredState").getAsInt() : 0,
+                            payload.get("isInMultiAction").getAsBoolean()
+                        );
+
+                        break;
                     case "keyUp":
-                        logger.warn("'{}' isn't implemented yet! Sorry!", jsonObject.get("event").getAsString());
+                        if (payload == null) {
+                            logger.error("Invalid JSON for {}", event);
+                            break;
+                        }
+
+                        toSend = new KeyUpEvent(
+                            jsonObject.get("context").getAsString(),
+                            jsonObject.get("action").getAsString(),
+                            jsonObject.get("device").getAsString(),
+                            // Payload data
+                            payload.get("settings").getAsJsonObject(),
+                            gson.fromJson(payload.get("coordinates").getAsJsonObject(), Coordinates.class),
+                            payload.has("state") ? payload.get("state").getAsInt() : 0,
+                            payload.has("userDesiredState") ? payload.get("userDesiredState").getAsInt() : 0,
+                            payload.get("isInMultiAction").getAsBoolean()
+                        );
                         break;
                     case "willAppear":
-                        JsonObject payload = jsonObject.get("payload").getAsJsonObject();
+                        if (payload == null) {
+                            logger.error("Invalid JSON for {}", event);
+                            break;
+                        }
 
                         toSend = new ActionAppearedEvent(
                             jsonObject.get("context").getAsString(),
@@ -260,25 +308,8 @@ public class StreamDeck4J {
         ws.connectAsynchronously();
     }
 
-    public void addListener(EventListener eventListener) {
-        this.listeners.add(eventListener);
-    }
-
-    public void openURL(URL url) {
-        JsonObject payload = new JsonObject();
-        payload.addProperty("url", url.toString());
-
-        sendEvent(SDEvent.OPEN_URL, payload);
-    }
-
-    public void setTitle(String title, Destination destination, String context) {
-        JsonObject obj = new JsonObject();
-        obj.addProperty("title", title);
-        obj.addProperty("target", destination.ordinal());
-        sendEvent(SDEvent.SET_TITLE, obj, context);
-    }
-
     private void sendEvent(@Nonnull SDEvent event, @Nonnull JsonObject payload) {
+        logger.trace("sendEvent(SDEvent, payload)");
         if (event.hasContext())
             throw new IllegalArgumentException("No context passed but " + event.getName() + " needs one!");
 
@@ -286,6 +317,7 @@ public class StreamDeck4J {
     }
 
     private void sendEvent(@Nonnull SDEvent event, @Nonnull JsonObject payload, @Nullable String context) {
+        logger.trace("sendEvent(SDEvent, payload, context)");
         if (context == null && event.hasContext())
             throw new IllegalArgumentException("No context passed but " + event.getName() + " needs one!");
 
@@ -296,11 +328,35 @@ public class StreamDeck4J {
 
         eventJson.add("payload", payload);
 
+        logger.trace("Sending payload - {}", eventJson.toString());
         sendPayload(eventJson);
     }
 
     private void sendPayload(JsonObject object) {
         logger.trace("-- SENT: " + object.toString());
         ws.sendBinary(object.toString().getBytes());
+    }
+
+    /////////////////////////
+    // Public methods
+    /////////////////////////
+    public void addListener(EventListener eventListener) {
+        this.listeners.add(eventListener);
+    }
+
+    public void openURL(URL url) {
+        logger.trace("openURL(url)");
+        JsonObject payload = new JsonObject();
+        payload.addProperty("url", url.toString());
+
+        sendEvent(SDEvent.OPEN_URL, payload);
+    }
+
+    public void setTitle(String title, Destination destination, String context) {
+        logger.trace("setTitle(title, destination, context)");
+        JsonObject obj = new JsonObject();
+        obj.addProperty("title", title);
+        obj.addProperty("target", destination.ordinal());
+        sendEvent(SDEvent.SET_TITLE, obj, context);
     }
 }
