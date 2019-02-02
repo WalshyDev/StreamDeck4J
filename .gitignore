@@ -1,0 +1,11 @@
+# IntelliJ
+*.iml
+.idea/
+target/
+
+# Build
+StreamDeck4J.exe
+l4j-config.xml
+
+# Log
+latest.log
