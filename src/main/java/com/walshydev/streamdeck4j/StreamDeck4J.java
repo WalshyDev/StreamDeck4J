@@ -11,6 +11,7 @@ import com.neovisionaries.ws.client.WebSocketFactory;
 import com.neovisionaries.ws.client.WebSocketFrame;
 import com.neovisionaries.ws.client.WebSocketState;
 import com.walshydev.streamdeck4j.events.ActionAppearedEvent;
+import com.walshydev.streamdeck4j.events.ActionDisappearedEvent;
 import com.walshydev.streamdeck4j.events.DeviceConnectedEvent;
 import com.walshydev.streamdeck4j.events.Event;
 import com.walshydev.streamdeck4j.events.KeyDownEvent;
@@ -188,7 +189,7 @@ public class StreamDeck4J {
                 //[X] keyDown
                 //[X] keyUp
                 //[X] willAppear
-                //willDisappear
+                //[X] willDisappear
                 //titleParametersDidChange
                 //[X] deviceDidConnect
                 //deviceDidDisconnect
@@ -253,6 +254,22 @@ public class StreamDeck4J {
                         );
                         break;
                     case "willDisappear":
+                        if (payload == null) {
+                            logger.error("Invalid JSON for {}", event);
+                            break;
+                        }
+
+                        toSend = new ActionDisappearedEvent(
+                            jsonObject.get("context").getAsString(),
+                            jsonObject.get("action").getAsString(),
+                            jsonObject.get("device").getAsString(),
+                            // Payload data
+                            payload.get("settings").getAsJsonObject(),
+                            gson.fromJson(payload.get("coordinates").getAsJsonObject(), Coordinates.class),
+                            payload.has("state") ? payload.get("state").getAsInt() : 0,
+                            payload.get("isInMultiAction").getAsBoolean()
+                        );
+                        break;
                     case "titleParametersDidChange":
                         logger.warn("'{}' isn't implemented yet! Sorry!", jsonObject.get("event").getAsString());
                         break;
@@ -316,7 +333,7 @@ public class StreamDeck4J {
         sendEvent(event, payload, null);
     }
 
-    private void sendEvent(@Nonnull SDEvent event, @Nonnull JsonObject payload, @Nullable String context) {
+    private void sendEvent(@Nonnull SDEvent event, @Nullable JsonObject payload, @Nullable String context) {
         logger.trace("sendEvent(SDEvent, payload, context)");
         if (context == null && event.hasContext())
             throw new IllegalArgumentException("No context passed but " + event.getName() + " needs one!");
@@ -332,7 +349,7 @@ public class StreamDeck4J {
         sendPayload(eventJson);
     }
 
-    private void sendPayload(JsonObject object) {
+    private void sendPayload(@Nonnull JsonObject object) {
         logger.trace("-- SENT: " + object.toString());
         ws.sendBinary(object.toString().getBytes());
     }
@@ -340,11 +357,11 @@ public class StreamDeck4J {
     /////////////////////////
     // Public methods
     /////////////////////////
-    public void addListener(EventListener eventListener) {
+    public void addListener(@Nonnull EventListener eventListener) {
         this.listeners.add(eventListener);
     }
 
-    public void openURL(URL url) {
+    public void openURL(@Nonnull URL url) {
         logger.trace("openURL(url)");
         JsonObject payload = new JsonObject();
         payload.addProperty("url", url.toString());
@@ -352,11 +369,59 @@ public class StreamDeck4J {
         sendEvent(SDEvent.OPEN_URL, payload);
     }
 
-    public void setTitle(String title, Destination destination, String context) {
-        logger.trace("setTitle(title, destination, context)");
+    public void setTitle(@Nonnull String context, @Nonnull String title, @Nonnull Destination destination) {
+        logger.trace("setTitle(context, title, destination)");
         JsonObject obj = new JsonObject();
         obj.addProperty("title", title);
         obj.addProperty("target", destination.ordinal());
         sendEvent(SDEvent.SET_TITLE, obj, context);
+    }
+
+    public void showAlert(@Nonnull String context) {
+        logger.trace("showAlert(context)");
+        sendEvent(SDEvent.SHOW_ALERT, null, context);
+    }
+
+    public void showOk(@Nonnull String context) {
+        logger.trace("showOk(context)");
+        sendEvent(SDEvent.SHOW_OK, null, context);
+    }
+
+    public void setSettings(@Nonnull String context, @Nonnull JsonObject dataToSave) {
+        logger.trace("setSettings(context, dataToSave)");
+        sendEvent(SDEvent.SET_SETTINGS, dataToSave, context);
+    }
+
+    public void setState(@Nonnull String context, int state) {
+        logger.trace("setState(context, state)");
+        JsonObject payload = new JsonObject();
+        payload.addProperty("state", state);
+        sendEvent(SDEvent.SET_STATE, payload, context);
+    }
+
+    public void sendToPropertyInspector(@Nonnull String context, @Nonnull String action, @Nonnull JsonObject payload) {
+        logger.trace("sendToPropertyInspector(context, action, payload)");
+        JsonObject eventJson = new JsonObject();
+        eventJson.addProperty("event", SDEvent.SEND_TO_PROPERY_INSPECTOR.getName());
+        eventJson.addProperty("context", context);
+        eventJson.addProperty("action", action);
+        eventJson.add("payload", payload);
+
+        sendPayload(eventJson);
+    }
+
+    public void switchToProfile(@Nonnull String context, @Nonnull String deviceId, @Nonnull String profile) {
+        logger.trace("switchToProfile(context, deviceId, payload)");
+        JsonObject eventJson = new JsonObject();
+        eventJson.addProperty("event", SDEvent.SEND_TO_PROPERY_INSPECTOR.getName());
+        eventJson.addProperty("context", context);
+        eventJson.addProperty("device", deviceId);
+
+        JsonObject payload = new JsonObject();
+        payload.addProperty("profile", profile);
+
+        eventJson.add("payload", payload);
+
+        sendPayload(eventJson);
     }
 }
