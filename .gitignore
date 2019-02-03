@@ -3,6 +3,12 @@
 .idea/
 target/
 
+# VSCode (???)
+.settings/*
+.classpath
+.factorypath
+.project
+
 # Build
 StreamDeck4J.exe
 l4j-config.xml
