@@ -61,9 +61,9 @@ public class StreamDeck4J {
     private boolean registered = false;
 
     /**
-     * Pass in the program arguments
+     * Connects to the websocket for Stream Deck
      *
-     * @param args
+     * @param args Program arguments, such as Websocket port, plugin UUID, etc.
      */
     public void connect(String[] args) {
         logger.trace("Hello, World!");
@@ -361,10 +361,20 @@ public class StreamDeck4J {
     /////////////////////////
     // Public methods
     /////////////////////////
+    /**
+     * Adds an event listener to the plugin
+     * 
+     * @param eventListener The listener to add
+     */
     public void addListener(@Nonnull EventListener eventListener) {
         this.listeners.add(eventListener);
     }
 
+    /**
+     * Opens a URL on the PC the Stream Deck is connected to.
+     * 
+     * @param url The URL to open
+     */
     public void openURL(@Nonnull URL url) {
         logger.trace("openURL(url)");
         JsonObject payload = new JsonObject();
@@ -373,6 +383,13 @@ public class StreamDeck4J {
         sendEvent(SDEvent.OPEN_URL, payload);
     }
 
+    /**
+     * Sets the title of a specific button on the Stream Deck
+     * 
+     * @param context The unique identifier for the button
+     * @param title The new title for the button
+     * @param destination The destination for the event (Hardware, Software or Both)
+     */
     public void setTitle(@Nonnull String context, @Nonnull String title, @Nonnull Destination destination) {
         logger.trace("setTitle(context, title, destination)");
         JsonObject obj = new JsonObject();
@@ -381,13 +398,28 @@ public class StreamDeck4J {
         sendEvent(SDEvent.SET_TITLE, obj, context);
     }
 
+    /**
+     * Sets the image of a specific button on the Stream Deck
+     * 
+     * @param context The unique identifier for the button
+     * @param image The image to display on the button
+     * @param destination The destination for the event (Hardware, Software or Both)
+     */
     public void setImage(@Nonnull String context, BufferedImage image, Destination destination) {
-        logger.trace("setState(context, image, destination)");
+        logger.trace("setImage(context, image, destination)");
         setImage(context, image, "png", destination);
     }
 
+    /**
+     * Sets the image of a specific button on the Stream Deck
+     * 
+     * @param context The unique identifier for the button
+     * @param image The image to display on the button
+     * @param type The image's file type (jpg, png, etc.)
+     * @param destination The destination for the event (Hardware, Software or Both)
+     */
     public void setImage(@Nonnull String context, BufferedImage image, String type, Destination destination) {
-        logger.trace("setState(context, image, type, destination)");
+        logger.trace("setImage(context, image, type, destination)");
         ByteArrayOutputStream baos = new ByteArrayOutputStream();
         try {
             ImageIO.write(image, type, baos);
@@ -399,8 +431,16 @@ public class StreamDeck4J {
         setImage(context, Base64.getEncoder().encodeToString(imageBytes), type, destination);
     }
 
+    /**
+     * Sets the image of a specific button on the Stream Deck
+     * 
+     * @param context The unique identifier of the button
+     * @param base64Encoded The Base64-encoded string of the image to display on the button
+     * @param type The image's file type (jpg, png, etc.)
+     * @param destination The destination for the event (Hardware, Software or Both)
+     */
     public void setImage(@Nonnull String context, String base64Encoded, String type, Destination destination) {
-        logger.trace("setState(context, base64Encoded, type, destination)");
+        logger.trace("setImage(context, base64Encoded, type, destination)");
         if (!base64Encoded.startsWith("data:image")) {
             base64Encoded = "data:image/" + type + ";base64," + base64Encoded;
         }
@@ -411,21 +451,44 @@ public class StreamDeck4J {
         sendEvent(SDEvent.SET_IMAGE, payload, context);
     }
 
+    /**
+     * Shows an alert on the Stream Deck
+     * 
+     * @param context The unique identifier of the button to show the alert on.
+     */
     public void showAlert(@Nonnull String context) {
         logger.trace("showAlert(context)");
         sendEvent(SDEvent.SHOW_ALERT, null, context);
     }
 
+    /**
+     * Shows a checkmark on a specific button on the Stream Deck
+     * 
+     * @param context The unique identifier of the button to show the checkmark on
+     */
     public void showOk(@Nonnull String context) {
         logger.trace("showOk(context)");
         sendEvent(SDEvent.SHOW_OK, null, context);
     }
 
+    /**
+     * Saves persistent data for the instance of the action. 
+     * ELI5: saves some data to the stream deck so if you restart it, it's still there
+     * 
+     * @param context The unique identifier of the button with the action you want to change data for
+     * @param dataToSave The data you want to save (in JSON-format)
+     */
     public void setSettings(@Nonnull String context, @Nonnull JsonObject dataToSave) {
         logger.trace("setSettings(context, dataToSave)");
         sendEvent(SDEvent.SET_SETTINGS, dataToSave, context);
     }
 
+    /**
+     * Allows you to change the state of an action that has multiple states
+     * 
+     * @param context The unique identifier of the button with the action you want to change
+     * @param state A 0-based integer for the state (0, 1, 2, etc.)
+     */
     public void setState(@Nonnull String context, int state) {
         logger.trace("setState(context, state)");
         JsonObject payload = new JsonObject();
@@ -433,6 +496,13 @@ public class StreamDeck4J {
         sendEvent(SDEvent.SET_STATE, payload, context);
     }
 
+    /**
+     * Sends an action to the Property Inspector.
+     * 
+     * @param context The unique identifier of the button with the action you want to send.
+     * @param action The unique identifier of the action you want to send.
+     * @param payload The JSON object that will be received by the Property Inspector.
+     */
     public void sendToPropertyInspector(@Nonnull String context, @Nonnull String action, @Nonnull JsonObject payload) {
         logger.trace("sendToPropertyInspector(context, action, payload)");
         JsonObject eventJson = new JsonObject();
@@ -444,6 +514,13 @@ public class StreamDeck4J {
         sendPayload(eventJson);
     }
 
+    /**
+     * Changes to a profile on the Stream Deck based on the profile's name
+     * 
+     * @param context The unique ID for the plugin, set as the PluginUUID received during registration.
+     * @param deviceId The unique ID for the Stream Deck. This value changes each time you relaunch the Stream Deck app.
+     * @param profile The name of the profile you want to switch to.
+     */
     public void switchToProfile(@Nonnull String context, @Nonnull String deviceId, @Nonnull String profile) {
         logger.trace("switchToProfile(context, deviceId, payload)");
         JsonObject eventJson = new JsonObject();
