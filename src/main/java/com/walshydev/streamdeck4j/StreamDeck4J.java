@@ -432,8 +432,8 @@ public class StreamDeck4J {
     }
 
     /**
-     * Sets the image, based off of a Base64-encoded String, of a specific button on the Stream Deck
-     * Note that the Base64 string does not require the 'data:image/{type};base64' at the beginning of it. This is appended in the function.
+     * Sets the image of a specific button on the Stream Deck
+     * Note that the Base64 string of the image does not require the 'data:image/{type};base64' at the beginning of it. This is appended in the function itself.
      * 
      * @param context The unique identifier of the button
      * @param base64Encoded The Base64-encoded string of the image to display on the button
@@ -474,8 +474,8 @@ public class StreamDeck4J {
 
     /**
      * Saves persistent data for the instance of the action. 
-     * You get this data through events such as keyDown, keyUp, willAppear, etc.
-     * The data is stored within the "payload" JSON object, in the object "settings".
+     * This data is found through events such as keyDown, keyUp, willAppear, etc.
+     * You can get it by calling `getSettings()` on the event inside an EventListener.
      * ELI5: saves some data to the stream deck so if you restart it, it's still there
      * 
      * @param context The unique identifier of the button with the action you want to change data for
