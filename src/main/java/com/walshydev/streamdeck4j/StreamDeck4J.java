@@ -432,7 +432,8 @@ public class StreamDeck4J {
     }
 
     /**
-     * Sets the image of a specific button on the Stream Deck
+     * Sets the image, based off of a Base64-encoded String, of a specific button on the Stream Deck
+     * Note that the Base64 string does not require the 'data:image/{type};base64' at the beginning of it. This is appended in the function.
      * 
      * @param context The unique identifier of the button
      * @param base64Encoded The Base64-encoded string of the image to display on the button
@@ -473,6 +474,8 @@ public class StreamDeck4J {
 
     /**
      * Saves persistent data for the instance of the action. 
+     * You get this data through events such as keyDown, keyUp, willAppear, etc.
+     * The data is stored within the "payload" JSON object, in the object "settings".
      * ELI5: saves some data to the stream deck so if you restart it, it's still there
      * 
      * @param context The unique identifier of the button with the action you want to change data for
@@ -517,15 +520,14 @@ public class StreamDeck4J {
     /**
      * Changes to a profile on the Stream Deck based on the profile's name
      * 
-     * @param context The unique ID for the plugin, set as the PluginUUID received during registration.
      * @param deviceId The unique ID for the Stream Deck. This value changes each time you relaunch the Stream Deck app.
      * @param profile The name of the profile you want to switch to.
      */
-    public void switchToProfile(@Nonnull String context, @Nonnull String deviceId, @Nonnull String profile) {
+    public void switchToProfile(@Nonnull String deviceId, @Nonnull String profile) {
         logger.trace("switchToProfile(context, deviceId, payload)");
         JsonObject eventJson = new JsonObject();
         eventJson.addProperty("event", SDEvent.SEND_TO_PROPERY_INSPECTOR.getName());
-        eventJson.addProperty("context", context);
+        eventJson.addProperty("context", pluginUUID.toString());
         eventJson.addProperty("device", deviceId);
 
         JsonObject payload = new JsonObject();
