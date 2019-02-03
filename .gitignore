@@ -9,3 +9,4 @@ l4j-config.xml
 
 # Log
 latest.log
+/src/main/resources
