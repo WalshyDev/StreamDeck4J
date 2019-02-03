@@ -527,7 +527,7 @@ public class StreamDeck4J {
         logger.trace("switchToProfile(context, deviceId, payload)");
         JsonObject eventJson = new JsonObject();
         eventJson.addProperty("event", SDEvent.SEND_TO_PROPERY_INSPECTOR.getName());
-        eventJson.addProperty("context", pluginUUID.toString());
+        eventJson.addProperty("context", pluginUUID.toString().toUpperCase());
         eventJson.addProperty("device", deviceId);
 
         JsonObject payload = new JsonObject();
