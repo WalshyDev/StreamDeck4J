@@ -31,10 +31,14 @@ import org.slf4j.LoggerFactory;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
+import javax.imageio.ImageIO;
+import java.awt.image.BufferedImage;
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.lang.reflect.Type;
 import java.net.URL;
 import java.util.Arrays;
+import java.util.Base64;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -375,6 +379,36 @@ public class StreamDeck4J {
         obj.addProperty("title", title);
         obj.addProperty("target", destination.ordinal());
         sendEvent(SDEvent.SET_TITLE, obj, context);
+    }
+
+    public void setImage(@Nonnull String context, BufferedImage image, Destination destination) {
+        logger.trace("setState(context, image, destination)");
+        setImage(context, image, "png", destination);
+    }
+
+    public void setImage(@Nonnull String context, BufferedImage image, String type, Destination destination) {
+        logger.trace("setState(context, image, type, destination)");
+        ByteArrayOutputStream baos = new ByteArrayOutputStream();
+        try {
+            ImageIO.write(image, type, baos);
+        } catch (Exception e) {
+            logger.error("Failed to encode image!", e);
+            return;
+        }
+        byte[] imageBytes = baos.toByteArray();
+        setImage(context, Base64.getEncoder().encodeToString(imageBytes), type, destination);
+    }
+
+    public void setImage(@Nonnull String context, String base64Encoded, String type, Destination destination) {
+        logger.trace("setState(context, base64Encoded, type, destination)");
+        if (!base64Encoded.startsWith("data:image")) {
+            base64Encoded = "data:image/" + type + ";base64," + base64Encoded;
+        }
+
+        JsonObject payload = new JsonObject();
+        payload.addProperty("image", base64Encoded);
+        payload.addProperty("target", destination.ordinal());
+        sendEvent(SDEvent.SET_IMAGE, payload, context);
     }
 
     public void showAlert(@Nonnull String context) {

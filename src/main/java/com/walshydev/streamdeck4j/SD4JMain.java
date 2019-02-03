@@ -7,7 +7,8 @@ import com.walshydev.streamdeck4j.info.Destination;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.net.MalformedURLException;
+import javax.imageio.ImageIO;
+import java.io.IOException;
 import java.net.URL;
 
 public class SD4JMain {
@@ -22,9 +23,9 @@ public class SD4JMain {
             @Override
             public void onActionAppeared(ActionAppearedEvent event) {
                 streamDeck4J.setTitle(
+                    event.getContext(),
                     "Testing123\n" + System.currentTimeMillis(),
-                    Destination.GARDWARE_AND_SOFTWARE,
-                    event.getContext()
+                    Destination.HARDWARE_AND_SOFTWARE
                 );
             }
 
@@ -32,7 +33,13 @@ public class SD4JMain {
             public void onKeyDown(KeyDownEvent event) {
                 try {
                     streamDeck4J.openURL(new URL("https://github.com/WalshyDev/StreamDeck4J"));
-                } catch (MalformedURLException e) {
+                    Thread.sleep(2000);
+                    streamDeck4J.setImage(
+                        event.getContext(),
+                        ImageIO.read(getClass().getClassLoader().getResourceAsStream("blob.png")),
+                        Destination.HARDWARE_AND_SOFTWARE
+                    );
+                } catch (InterruptedException | IOException e) {
                     e.printStackTrace();
                 }
             }
