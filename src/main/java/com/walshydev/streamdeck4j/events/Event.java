@@ -2,16 +2,15 @@ package com.walshydev.streamdeck4j.events;
 
 import javax.annotation.Nullable;
 
+@SuppressWarnings("WeakerAccess")
 public abstract class Event {
 
-    @Nullable
     private final String context;
 
-    protected Event(@Nullable String context) {
+    public Event(@Nullable String context) {
         this.context = context;
     }
 
-    @Nullable
     public String getContext() {
         return this.context;
     }

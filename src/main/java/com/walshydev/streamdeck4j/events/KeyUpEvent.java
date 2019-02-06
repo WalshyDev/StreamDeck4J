@@ -6,12 +6,16 @@ import lombok.Getter;
 
 import javax.annotation.Nonnull;
 
-@Getter
+@Getter(onMethod = @__({@Nonnull}))
 public class KeyUpEvent extends Event {
 
+    @Nonnull
     private final String action;
+    @Nonnull
     private final String deviceId;
+    @Nonnull
     private final JsonObject settings;
+    @Nonnull
     private final Coordinates coordinates;
     private final int state;
     private final int userDesiredState;
