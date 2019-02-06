@@ -17,6 +17,7 @@ public enum SDEvent {
 
     private String name;
     private boolean hasContext;
+
     SDEvent(String name) {
         this.name = name;
         this.hasContext = false;
