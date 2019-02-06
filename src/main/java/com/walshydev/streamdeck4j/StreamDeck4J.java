@@ -10,12 +10,7 @@ import com.neovisionaries.ws.client.WebSocketException;
 import com.neovisionaries.ws.client.WebSocketFactory;
 import com.neovisionaries.ws.client.WebSocketFrame;
 import com.neovisionaries.ws.client.WebSocketState;
-import com.walshydev.streamdeck4j.events.ActionAppearedEvent;
-import com.walshydev.streamdeck4j.events.ActionDisappearedEvent;
-import com.walshydev.streamdeck4j.events.DeviceConnectedEvent;
-import com.walshydev.streamdeck4j.events.Event;
-import com.walshydev.streamdeck4j.events.KeyDownEvent;
-import com.walshydev.streamdeck4j.events.KeyUpEvent;
+import com.walshydev.streamdeck4j.events.*;
 import com.walshydev.streamdeck4j.hooks.EventListener;
 import com.walshydev.streamdeck4j.info.Application;
 import com.walshydev.streamdeck4j.info.Coordinates;
@@ -284,6 +279,33 @@ public class StreamDeck4J {
                     case "applicationDidLaunch":
                     case "applicationDidTerminate":
                         logger.warn("'{}' isn't implemented yet! Sorry!", jsonObject.get("event").getAsString());
+                        break;
+                    case "didReceiveSettings":
+                        if (payload == null) {
+                            logger.error("Invalid JSON for {}", event);
+                            break;
+                        }
+
+                        toSend = new DidReceiveSettingsEvent(
+                                jsonObject.get("context").getAsString(),
+                                jsonObject.get("action").getAsString(),
+                                jsonObject.get("device").getAsString(),
+                                // Payload data
+                                payload.get("settings").getAsJsonObject(),
+                                gson.fromJson(payload.get("coordinates").getAsJsonObject(), Coordinates.class),
+                                payload.get("isInMultiAction").getAsBoolean()
+                        );
+                        break;
+                    case "didReceiveGlobalSettings":
+                        if (payload == null) {
+                            logger.error("Invalid JSON for {}", event);
+                            break;
+                        }
+
+                        toSend = new DidReceiveGlobalSettingsEvent(
+                                payload.get("settings").getAsJsonObject()
+                        );
+                        break;
                     default:
                         logger.warn(
                             "Received unknown event! '{}' - Ignoring for now!",
@@ -473,6 +495,18 @@ public class StreamDeck4J {
     }
 
     /**
+     * Gets the persistent data of an instance of an action.
+     *
+     * @param context The unique identifier of the button with the action you want to grab data for
+     */
+    public void getSettings(@Nonnull String context) {
+        logger.trace("getSettings(context)");
+        sendEvent(SDEvent.GET_SETTINGS, null, context);
+        // TODO: Implement returning the JsonObject from this event. Walshy, I'm looking at you :eyes:
+        // Docs: https://edge.elgato.com/egc/sd_content/releasenotes/4.1b1.html
+    }
+
+    /**
      * Saves persistent data for the instance of the action. 
      * This data is found through events such as keyDown, keyUp, willAppear, etc.
      * You can get it by calling `getSettings()` on the event inside an EventListener.
@@ -484,6 +518,17 @@ public class StreamDeck4J {
     public void setSettings(@Nonnull String context, @Nonnull JsonObject dataToSave) {
         logger.trace("setSettings(context, dataToSave)");
         sendEvent(SDEvent.SET_SETTINGS, dataToSave, context);
+    }
+
+    public void getGlobalSettings(@Nonnull String context) {
+        logger.trace("getGlobalSettings(context)");
+        sendEvent(SDEvent.GET_GLOBAL_SETTINGS, null, context);
+        // TODO: Implement.
+    }
+
+    public void setGlobalSettings(@Nonnull String context, @Nonnull JsonObject dataToSave) {
+        logger.trace("setGlobalSettings(context, dataToSave)");
+        sendEvent(SDEvent.SET_GLOBAL_SETTINGS, dataToSave, context);
     }
 
     /**
@@ -509,7 +554,7 @@ public class StreamDeck4J {
     public void sendToPropertyInspector(@Nonnull String context, @Nonnull String action, @Nonnull JsonObject payload) {
         logger.trace("sendToPropertyInspector(context, action, payload)");
         JsonObject eventJson = new JsonObject();
-        eventJson.addProperty("event", SDEvent.SEND_TO_PROPERY_INSPECTOR.getName());
+        eventJson.addProperty("event", SDEvent.SEND_TO_PROPERTY_INSPECTOR.getName());
         eventJson.addProperty("context", context);
         eventJson.addProperty("action", action);
         eventJson.add("payload", payload);
@@ -526,7 +571,7 @@ public class StreamDeck4J {
     public void switchToProfile(@Nonnull String deviceId, @Nonnull String profile) {
         logger.trace("switchToProfile(context, deviceId, payload)");
         JsonObject eventJson = new JsonObject();
-        eventJson.addProperty("event", SDEvent.SEND_TO_PROPERY_INSPECTOR.getName());
+        eventJson.addProperty("event", SDEvent.SEND_TO_PROPERTY_INSPECTOR.getName());
         eventJson.addProperty("context", pluginUUID.toString().toUpperCase());
         eventJson.addProperty("device", deviceId);
 

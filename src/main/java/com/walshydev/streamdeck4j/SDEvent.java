@@ -6,9 +6,12 @@ public enum SDEvent {
     SET_IMAGE("setImage", true),
     SHOW_ALERT("showAlert", true),
     SHOW_OK("showOk", true),
+    GET_SETTINGS("getSettings", true),
     SET_SETTINGS("setSettings", true),
+    GET_GLOBAL_SETTINGS("getGlobalSettings", true),
+    SET_GLOBAL_SETTINGS("setGlobalSettings", true),
     SET_STATE("setState", true),
-    SEND_TO_PROPERY_INSPECTOR("sendToPropertyInspector", true),
+    SEND_TO_PROPERTY_INSPECTOR("sendToPropertyInspector", true),
     SWITCH_TO_PROFILE("switchToProfile", true),
     OPEN_URL("openUrl"),
 
@@ -20,7 +23,8 @@ public enum SDEvent {
     DEVICE_DID_CONNECT("deviceDidConnect", true),
     DEVICE_DID_DISCONNECT("deviceDidDisconnect", true),
     APPLICATION_DID_LAUNCH("applicationDidLaunch", true),
-    APPLICATION_DID_TERMINATE("applicationDidTerminate", true);
+    APPLICATION_DID_TERMINATE("applicationDidTerminate", true),
+    DID_RECEIVE_SETTINGS("didReceiveSettings", true, true);
 
     private String name;
     private boolean hasContext;

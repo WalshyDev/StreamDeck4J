@@ -2,12 +2,7 @@ package com.walshydev.streamdeck4j.hooks;
 
 // TODO: Document
 
-import com.walshydev.streamdeck4j.events.ActionAppearedEvent;
-import com.walshydev.streamdeck4j.events.ActionDisappearedEvent;
-import com.walshydev.streamdeck4j.events.DeviceConnectedEvent;
-import com.walshydev.streamdeck4j.events.Event;
-import com.walshydev.streamdeck4j.events.KeyDownEvent;
-import com.walshydev.streamdeck4j.events.KeyUpEvent;
+import com.walshydev.streamdeck4j.events.*;
 import org.slf4j.LoggerFactory;
 
 public abstract class AbstractListener implements EventListener {
@@ -27,6 +22,12 @@ public abstract class AbstractListener implements EventListener {
     public void onKeyUp(KeyUpEvent event) {
     }
 
+    public void onDidReceiveSettings(DidReceiveSettingsEvent event) {
+    }
+
+    public void onDidReceiveGlobalSettings(DidReceiveGlobalSettingsEvent event) {
+    }
+
     @Override
     public final void onEvent(Event event) {
         if (event instanceof DeviceConnectedEvent)
@@ -39,6 +40,10 @@ public abstract class AbstractListener implements EventListener {
             onKeyDown((KeyDownEvent) event);
         else if (event instanceof KeyUpEvent)
             onKeyUp((KeyUpEvent) event);
+        else if (event instanceof DidReceiveSettingsEvent)
+            onDidReceiveSettings((DidReceiveSettingsEvent) event);
+        else if(event instanceof DidReceiveGlobalSettingsEvent)
+            onDidReceiveGlobalSettings((DidReceiveGlobalSettingsEvent) event);
 
         else
             LoggerFactory.getLogger(AbstractListener.class)
