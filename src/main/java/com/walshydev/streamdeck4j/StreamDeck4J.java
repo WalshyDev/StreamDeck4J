@@ -362,7 +362,6 @@ public class StreamDeck4J {
     /////////////////////////
     // Public methods
     /////////////////////////
-
     /**
      * Adds an event listener to the plugin
      *
@@ -390,6 +389,11 @@ public class StreamDeck4J {
         return this.devices;
     }
 
+    /**
+     * Opens a URL on the PC the Stream Deck is connected to.
+     *
+     * @param url The URL to open
+     */
     public void openURL(@Nonnull URL url) {
         logger.trace("openURL(url)");
         JsonObject payload = new JsonObject();
