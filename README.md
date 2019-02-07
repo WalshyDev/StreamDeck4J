@@ -23,7 +23,6 @@ public static void main(String[] args) {
 }
 ```
 
-**I recommend adding a logger in, slf4j-api is a dependency and logging is setup. You can add your on implementation. Logback-classic is a nice one, example logback.xml [here](https://gist.github.com/WalshyDev/dfcd1f155b71c68bf596deb44bf6e15f)**
 
 ## Building for the StreamDeck
 1. Compile your jar with your build tool
@@ -58,3 +57,17 @@ dependencies {
     implementation 'com.github.WalshyDev:StreamDeck4J:$RELEASE_OR_COMMIT'
 }
 ```
+
+### Logging Framework - SLF4J
+SD4J uses [SLF4J](https://www.slf4j.org/) to log its messages.
+
+That means you should add some SLF4J implementation to your build path in addition to SD4J.
+If no implementation is found, following message will be printed to the console on startup:
+```
+SLF4J: Failed to load class "org.slf4j.impl.StaticLoggerBinder".
+SLF4J: Defaulting to no-operation (NOP) logger implementation
+SLF4J: See http://www.slf4j.org/codes.html#StaticLoggerBinder for further details.
+```
+
+The most popular implementations are [Log4j 2](https://logging.apache.org/log4j/2.x/) and [Logback](https://logback.qos.ch/). [Here's a nice example of a logback.xml](https://gist.github.com/WalshyDev/dfcd1f155b71c68bf596deb44bf6e15f)
+<!-- TODO: Implement fallback logger -->
