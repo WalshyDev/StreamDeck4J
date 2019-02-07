@@ -6,7 +6,7 @@ import lombok.Getter;
 
 import javax.annotation.Nonnull;
 
-@Getter
+@Getter(onMethod_ = {@Nonnull})
 public class ActionAppearedEvent extends Event {
 
     private final String action;
