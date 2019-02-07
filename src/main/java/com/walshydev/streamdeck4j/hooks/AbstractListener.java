@@ -28,6 +28,12 @@ public abstract class AbstractListener implements EventListener {
     public void onDidReceiveGlobalSettings(DidReceiveGlobalSettingsEvent event) {
     }
 
+    public void onPropertyInspectorDidAppear(PropertyInspectorDidAppearEvent event) {
+    }
+
+    public void onPropertyInspectorDidDisappear(PropertyInspectorDidDisappearEvent event) {
+    }
+
     @Override
     public final void onEvent(Event event) {
         if (event instanceof DeviceConnectedEvent)
@@ -44,7 +50,10 @@ public abstract class AbstractListener implements EventListener {
             onDidReceiveSettings((DidReceiveSettingsEvent) event);
         else if(event instanceof DidReceiveGlobalSettingsEvent)
             onDidReceiveGlobalSettings((DidReceiveGlobalSettingsEvent) event);
-
+        else if (event instanceof PropertyInspectorDidAppearEvent)
+            onPropertyInspectorDidAppear((PropertyInspectorDidAppearEvent) event);
+        else if(event instanceof PropertyInspectorDidDisappearEvent)
+            onPropertyInspectorDidDisappear((PropertyInspectorDidDisappearEvent) event);
         else
             LoggerFactory.getLogger(AbstractListener.class)
                 .error("Unknown event was thrown! {}", event.getClass().getSimpleName());

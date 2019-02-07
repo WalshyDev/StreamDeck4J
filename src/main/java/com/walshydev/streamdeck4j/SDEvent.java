@@ -13,7 +13,8 @@ public enum SDEvent {
     SET_STATE("setState", true),
     SEND_TO_PROPERTY_INSPECTOR("sendToPropertyInspector", true),
     SWITCH_TO_PROFILE("switchToProfile", true),
-    OPEN_URL("openUrl");
+    OPEN_URL("openUrl"),
+    LOG_MESSAGE("logMessage");
 
     private String name;
     private boolean hasContext;
