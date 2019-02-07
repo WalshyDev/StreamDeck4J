@@ -68,6 +68,13 @@ public class StreamDeck4J {
         parseArguments(args);
         logger.trace("Parsed arguments - " + Arrays.toString(cmd.getOptions()));
 
+        Thread.setDefaultUncaughtExceptionHandler(((t, e) ->
+            logger.error("Uncaught exception in {} - {}", t.getName(), e.getClass().getSimpleName(), e))
+        );
+        Thread.currentThread().setUncaughtExceptionHandler(((t, e) ->
+            logger.error("Uncaught exception in {} - {}", t.getName(), e.getClass().getSimpleName(), e))
+        );
+
         logger.debug("Connecting to websocket");
         connectToWebsocket();
 
@@ -385,7 +392,8 @@ public class StreamDeck4J {
         if (event.hasContext())
             eventJson.addProperty("context", context);
 
-        eventJson.add("payload", payload);
+        if (payload != null)
+            eventJson.add("payload", payload);
 
         logger.trace("Sending payload - {}", eventJson.toString());
         sendPayload(eventJson);
