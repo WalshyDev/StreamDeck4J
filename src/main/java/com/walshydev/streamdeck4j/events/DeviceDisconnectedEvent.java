@@ -10,7 +10,7 @@ public class DeviceDisconnectedEvent extends Event {
     private final String deviceId;
 
     public DeviceDisconnectedEvent(
-            @Nonnull String deviceId
+        @Nonnull String deviceId
     ) {
         super(null);
         this.deviceId = deviceId;

@@ -1,7 +1,6 @@
 package com.walshydev.streamdeck4j.events;
 
 import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
 
 public class DeviceConnectedEvent extends Event {
 

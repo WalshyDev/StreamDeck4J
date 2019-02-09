@@ -10,7 +10,7 @@ public class ApplicationTerminatedEvent extends Event {
     private final String applicationName;
 
     public ApplicationTerminatedEvent(
-            @Nonnull String applicationName
+        @Nonnull String applicationName
     ) {
         super(null);
         this.applicationName = applicationName;

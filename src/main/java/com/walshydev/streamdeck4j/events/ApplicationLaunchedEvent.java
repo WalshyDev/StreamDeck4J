@@ -10,7 +10,7 @@ public class ApplicationLaunchedEvent extends Event {
     private final String applicationName;
 
     public ApplicationLaunchedEvent(
-            @Nonnull String applicationName
+        @Nonnull String applicationName
     ) {
         super(null);
         this.applicationName = applicationName;

@@ -6,7 +6,8 @@ import com.walshydev.streamdeck4j.info.Coordinates;
 import lombok.Getter;
 
 import javax.annotation.Nonnull;
-import java.awt.*;
+import java.awt.Color;
+import java.awt.Font;
 
 
 @Getter
@@ -33,7 +34,7 @@ public class TitleParametersDidChangeEvent extends Event {
         @Nonnull Font titleFont,
         @Nonnull Color titleColor,
         @Nonnull Alignment alignment
-        ) {
+    ) {
         super(context);
         this.action = action;
         this.deviceId = deviceId;
