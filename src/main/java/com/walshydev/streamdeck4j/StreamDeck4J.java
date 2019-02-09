@@ -12,11 +12,17 @@ import com.neovisionaries.ws.client.WebSocketFrame;
 import com.neovisionaries.ws.client.WebSocketState;
 import com.walshydev.streamdeck4j.events.ActionAppearedEvent;
 import com.walshydev.streamdeck4j.events.ActionDisappearedEvent;
+import com.walshydev.streamdeck4j.events.ApplicationLaunchedEvent;
+import com.walshydev.streamdeck4j.events.ApplicationTerminatedEvent;
 import com.walshydev.streamdeck4j.events.DeviceConnectedEvent;
+import com.walshydev.streamdeck4j.events.DeviceDisconnectedEvent;
 import com.walshydev.streamdeck4j.events.Event;
 import com.walshydev.streamdeck4j.events.KeyDownEvent;
 import com.walshydev.streamdeck4j.events.KeyUpEvent;
+import com.walshydev.streamdeck4j.events.SentToPluginEvent;
+import com.walshydev.streamdeck4j.events.TitleParametersDidChangeEvent;
 import com.walshydev.streamdeck4j.hooks.EventListener;
+import com.walshydev.streamdeck4j.info.Alignment;
 import com.walshydev.streamdeck4j.info.Application;
 import com.walshydev.streamdeck4j.info.Coordinates;
 import com.walshydev.streamdeck4j.info.Destination;
@@ -32,6 +38,9 @@ import org.slf4j.LoggerFactory;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import javax.imageio.ImageIO;
+import java.awt.Color;
+import java.awt.Font;
+import java.awt.font.TextAttribute;
 import java.awt.image.BufferedImage;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
@@ -39,6 +48,7 @@ import java.lang.reflect.Type;
 import java.net.URL;
 import java.util.Arrays;
 import java.util.Base64;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -190,17 +200,6 @@ public class StreamDeck4J {
                 if (jsonObject.has("payload"))
                     payload = jsonObject.get("payload").getAsJsonObject();
 
-                // All current known receive events:
-                //[X] keyDown
-                //[X] keyUp
-                //[X] willAppear
-                //[X] willDisappear
-                //titleParametersDidChange
-                //[X] deviceDidConnect
-                //deviceDidDisconnect
-                //applicationDidLaunch
-                //applicationDidTerminate
-
                 Event toSend = null;
 
                 switch (event) {
@@ -276,15 +275,57 @@ public class StreamDeck4J {
                         );
                         break;
                     case "titleParametersDidChange":
-                        logger.warn("'{}' isn't implemented yet! Sorry!", jsonObject.get("event").getAsString());
+                        if (payload == null) {
+                            logger.error("Invalid JSON for {}", event);
+                            break;
+                        }
+
+                        toSend = new TitleParametersDidChangeEvent(
+                            jsonObject.get("context").getAsString(),
+                            jsonObject.get("action").getAsString(),
+                            jsonObject.get("device").getAsString(),
+
+                            // Payload data
+                            payload.get("settings").getAsJsonObject(),
+                            gson.fromJson(payload.get("coordinates").getAsJsonObject(), Coordinates.class),
+                            payload.get("state").getAsInt(),
+                            payload.get("title").getAsString(),
+                            getFont(payload.get("titleParameters").getAsJsonObject()),
+                            Color.decode(payload.get("titleColor").getAsString()),
+                            Alignment.valueOf(payload.get("titleAlignment").getAsString().toUpperCase())
+                        );
                         break;
                     case "deviceDidConnect":
-                        toSend = new DeviceConnectedEvent(null, jsonObject.get("device").getAsString());
+                        toSend = new DeviceConnectedEvent(jsonObject.get("device").getAsString());
                         break;
                     case "deviceDidDisconnect":
+                        toSend = new DeviceDisconnectedEvent(jsonObject.get("device").getAsString());
+                        break;
                     case "applicationDidLaunch":
+                        if (payload == null) {
+                            logger.error("Invalid JSON for {}", event);
+                            break;
+                        }
+                        toSend = new ApplicationLaunchedEvent(payload.get("application").getAsString());
+                        break;
                     case "applicationDidTerminate":
-                        logger.warn("'{}' isn't implemented yet! Sorry!", jsonObject.get("event").getAsString());
+                        if (payload == null) {
+                            logger.error("Invalid JSON for {}", event);
+                            break;
+                        }
+                        toSend = new ApplicationTerminatedEvent(payload.get("application").getAsString());
+                        break;
+                    case "sendToPlugin":
+                        if (payload == null) {
+                            logger.error("Invalid JSON for {}", event);
+                            break;
+                        }
+                        toSend = new SentToPluginEvent(
+                            jsonObject.get("context").getAsString(),
+                            jsonObject.get("action").getAsString(),
+                            payload
+                        );
+                        break;
                     default:
                         logger.warn(
                             "Received unknown event! '{}' - Ignoring for now!",
@@ -359,9 +400,39 @@ public class StreamDeck4J {
         ws.sendBinary(object.toString().getBytes());
     }
 
+    @SuppressWarnings("unchecked")
+    private Font getFont(JsonObject titleParameters) {
+        int fontSize = titleParameters.get("fontSize").getAsInt();
+        if (fontSize > 18 || fontSize < 6)
+            throw new IllegalArgumentException("Received font size value outside of the range 6-18... is this ever meant to happen?");
+        Font f = new Font(
+            titleParameters.get("fontFamily").getAsString(),
+            getFontStyle(titleParameters.get("fontStyle").getAsString()),
+            fontSize);
+        if (titleParameters.get("fontUnderline").getAsBoolean()) {
+            Map<TextAttribute, Integer> attributes = (HashMap<TextAttribute, Integer>) f.getAttributes();
+            attributes.put(TextAttribute.UNDERLINE, TextAttribute.UNDERLINE_ON);
+            f = f.deriveFont(attributes);
+        }
+        return f;
+    }
+
+    private int getFontStyle(String fontStyle) {
+        fontStyle = fontStyle.toLowerCase();
+        if (fontStyle.contains("bold") && fontStyle.contains("italic"))
+            return Font.BOLD + Font.ITALIC;
+        else if (fontStyle.contains("bold"))
+            return Font.BOLD;
+        else if (fontStyle.contains("italic"))
+            return Font.ITALIC;
+        else
+            return Font.PLAIN;
+    }
+
     /////////////////////////
     // Public methods
     /////////////////////////
+
     /**
      * Adds an event listener to the plugin
      *

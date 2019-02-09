@@ -8,8 +8,8 @@ public class DeviceConnectedEvent extends Event {
     @Nonnull
     private final String deviceId;
 
-    public DeviceConnectedEvent(@Nullable String context, @Nonnull String deviceId) {
-        super(context);
+    public DeviceConnectedEvent(@Nonnull String deviceId) {
+        super(null);
         this.deviceId = deviceId;
     }
 
