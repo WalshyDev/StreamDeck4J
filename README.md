@@ -44,7 +44,7 @@ public static void main(String[] args) {
 <dependency>
     <groupId>com.github.WalshyDev</groupId>
     <artifactId>StreamDeck4J</artifactId>
-    <version>$RELEASE_OR_COMMIT</version>
+    <version>1.1</version>
 </dependency>
 ```
 
@@ -55,7 +55,7 @@ repositories {
 }
 
 dependencies {
-    implementation 'com.github.WalshyDev:StreamDeck4J:$RELEASE_OR_COMMIT'
+    implementation 'com.github.WalshyDev:StreamDeck4J:1.1'
 }
 ```
 
