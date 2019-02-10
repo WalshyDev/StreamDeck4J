@@ -9,15 +9,15 @@ import com.neovisionaries.ws.client.WebSocketFrame;
 import com.neovisionaries.ws.client.WebSocketState;
 import com.walshydev.streamdeck4j.PluginImpl;
 import com.walshydev.streamdeck4j.events.Event;
+import com.walshydev.streamdeck4j.utils.SD4JLogger;
 import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.util.List;
 import java.util.Map;
 
 public class WebsocketListener extends WebSocketAdapter {
 
-    private final Logger logger = LoggerFactory.getLogger(WebsocketListener.class);
+    private final Logger logger = SD4JLogger.getLog(WebsocketListener.class);
     private final JsonParser parser = new JsonParser();
 
     private final PluginImpl api;

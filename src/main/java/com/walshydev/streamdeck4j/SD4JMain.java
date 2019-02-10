@@ -4,8 +4,8 @@ import com.walshydev.streamdeck4j.events.ActionAppearedEvent;
 import com.walshydev.streamdeck4j.events.KeyDownEvent;
 import com.walshydev.streamdeck4j.hooks.AbstractListener;
 import com.walshydev.streamdeck4j.info.Destination;
+import com.walshydev.streamdeck4j.utils.SD4JLogger;
 import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import javax.imageio.ImageIO;
 import java.io.IOException;
@@ -13,7 +13,7 @@ import java.net.URL;
 
 public class SD4JMain {
 
-    private static final Logger logger = LoggerFactory.getLogger(SD4JMain.class);
+    private static final Logger logger = SD4JLogger.getLog(SD4JMain.class);
 
     public static void main(String[] args) {
         logger.info("Starting main test app for StreamDeck4J");

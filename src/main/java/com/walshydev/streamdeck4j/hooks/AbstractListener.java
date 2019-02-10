@@ -8,7 +8,7 @@ import com.walshydev.streamdeck4j.events.DeviceConnectedEvent;
 import com.walshydev.streamdeck4j.events.Event;
 import com.walshydev.streamdeck4j.events.KeyDownEvent;
 import com.walshydev.streamdeck4j.events.KeyUpEvent;
-import org.slf4j.LoggerFactory;
+import com.walshydev.streamdeck4j.utils.SD4JLogger;
 
 public abstract class AbstractListener implements EventListener {
 
@@ -41,7 +41,7 @@ public abstract class AbstractListener implements EventListener {
             onKeyUp((KeyUpEvent) event);
 
         else
-            LoggerFactory.getLogger(AbstractListener.class)
+            SD4JLogger.getLog(AbstractListener.class)
                 .error("Unknown event was thrown! {}", event.getClass().getSimpleName());
     }
 }

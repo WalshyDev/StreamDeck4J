@@ -25,13 +25,13 @@ import com.walshydev.streamdeck4j.info.Application;
 import com.walshydev.streamdeck4j.info.Coordinates;
 import com.walshydev.streamdeck4j.info.Destination;
 import com.walshydev.streamdeck4j.info.Device;
+import com.walshydev.streamdeck4j.utils.SD4JLogger;
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.CommandLineParser;
 import org.apache.commons.cli.DefaultParser;
 import org.apache.commons.cli.Options;
 import org.apache.commons.cli.ParseException;
 import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -54,7 +54,7 @@ import java.util.UUID;
 @SuppressWarnings({"unused", "WeakerAccess", "SameParameterValue"})
 public final class PluginImpl implements Plugin {
 
-    private static final Logger logger = LoggerFactory.getLogger(Plugin.class);
+    private static final Logger logger = SD4JLogger.getLog(Plugin.class);
 
     private final Gson gson = new Gson();
     private final JsonParser parser = new JsonParser();
@@ -226,7 +226,6 @@ public final class PluginImpl implements Plugin {
     }
 
     public Event handleEvent(@Nonnull JsonObject jsonObject) {
-        System.out.println(jsonObject.toString());
         final String event = jsonObject.get("event").getAsString();
 
         @Nullable JsonObject payload = null;
