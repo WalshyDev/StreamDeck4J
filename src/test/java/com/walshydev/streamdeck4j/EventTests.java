@@ -26,7 +26,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-public class EventTests {
+class EventTests {
 
     private final String EXAMPLE_ACTION = "com.walshydev.example.action";
     private final String EXAMPLE_CONTEXT = "CONT3X_3X4MPL3";
@@ -36,12 +36,12 @@ public class EventTests {
     private static PluginImpl plugin;
 
     @BeforeAll
-    public static void setup() {
+    static void setup() {
         plugin = new PluginImpl(new HashSet<>(), null);
     }
 
     @Test
-    public void testKeyDownEvent() {
+    void testKeyDownEvent() {
         JsonObject obj = new JsonObject();
         obj.addProperty("action", EXAMPLE_ACTION);
         obj.addProperty("event", SDEvent.KEY_DOWN.getName());
@@ -79,7 +79,7 @@ public class EventTests {
     }
 
     @Test
-    public void testKeyUpEvent() {
+    void testKeyUpEvent() {
         JsonObject obj = new JsonObject();
         obj.addProperty("action", EXAMPLE_ACTION);
         obj.addProperty("event", SDEvent.KEY_UP.getName());
@@ -117,7 +117,7 @@ public class EventTests {
     }
 
     @Test
-    public void testWillAppearEvent() {
+    void testWillAppearEvent() {
         JsonObject obj = new JsonObject();
         obj.addProperty("action", EXAMPLE_ACTION);
         obj.addProperty("event", SDEvent.WILL_APPEAR.getName());
@@ -152,7 +152,7 @@ public class EventTests {
     }
 
     @Test
-    public void testWillDisappearEvent() {
+    void testWillDisappearEvent() {
         JsonObject obj = new JsonObject();
         obj.addProperty("action", EXAMPLE_ACTION);
         obj.addProperty("event", SDEvent.WILL_DISAPPEAR.getName());
@@ -187,7 +187,7 @@ public class EventTests {
     }
 
     @Test
-    public void testTitleParametersDidChange() {
+    void testTitleParametersDidChange() {
         JsonObject obj = new JsonObject();
         obj.addProperty("action", EXAMPLE_ACTION);
         obj.addProperty("event", SDEvent.TITLE_PARAMETERS_DID_CHANGE.getName());
@@ -245,7 +245,7 @@ public class EventTests {
     }
 
     @Test
-    public void testDeviceDidConnect() {
+    void testDeviceDidConnect() {
         JsonObject obj = new JsonObject();
         obj.addProperty("event", SDEvent.DEVICE_DID_CONNECT.getName());
         obj.addProperty("device", EXAMPLE_DEVICE);
@@ -265,7 +265,7 @@ public class EventTests {
     }
 
     @Test
-    public void testDeviceDidDisconnect() {
+    void testDeviceDidDisconnect() {
         JsonObject obj = new JsonObject();
         obj.addProperty("event", SDEvent.DEVICE_DID_DISCONNECT.getName());
         obj.addProperty("device", EXAMPLE_DEVICE);
@@ -280,7 +280,7 @@ public class EventTests {
     }
 
     @Test
-    public void testApplicationDidLaunch() {
+    void testApplicationDidLaunch() {
         // Windows
         JsonObject obj = new JsonObject();
         obj.addProperty("event", SDEvent.APPLICATION_DID_LAUNCH.getName());
@@ -317,7 +317,7 @@ public class EventTests {
     }
 
     @Test
-    public void testApplicationDidTerminate() {
+    void testApplicationDidTerminate() {
         // Windows
         JsonObject obj = new JsonObject();
         obj.addProperty("event", SDEvent.APPLICATION_DID_TERMINATE.getName());
