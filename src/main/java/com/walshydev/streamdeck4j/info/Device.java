@@ -1,26 +1,17 @@
 package com.walshydev.streamdeck4j.info;
 
+import lombok.AllArgsConstructor;
 import lombok.Getter;
 
+@AllArgsConstructor
 public class Device {
 
-    private String id;
     private Size size;
     private byte type;
 
     /**
-     * The unique ID of this device. You can use this to identify exactly which device is being used if there's
-     * multiple.
-     *
-     * @return The unique identifier for this StreamDeck device.
-     */
-    public String getId() {
-        return this.id;
-    }
-
-    /**
-     * Get the size of the StreamDeck, this returns a {@link Size} class. You can get the amount of columms,
-     * rows and total amount of keys from this.
+     * Get the size of the StreamDeck, this returns a {@link Size} class. You can get the amount of columms, rows and
+     * total amount of keys from this.
      *
      * @return The {@link Size} of the device.
      */
@@ -40,15 +31,16 @@ public class Device {
     public byte getType() {
         return this.type;
     }
-}
 
-@Getter
-class Size {
+    @Getter
+    @AllArgsConstructor
+    public static class Size {
 
-    private int columns;
-    private int rows;
+        private int columns;
+        private int rows;
 
-    public int getTotalKeys() {
-        return columns * rows;
+        public int getTotalKeys() {
+            return columns * rows;
+        }
     }
 }
