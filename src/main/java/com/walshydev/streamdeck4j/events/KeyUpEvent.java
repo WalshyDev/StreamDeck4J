@@ -1,6 +1,7 @@
 package com.walshydev.streamdeck4j.events;
 
 import com.google.gson.JsonObject;
+import com.walshydev.streamdeck4j.Plugin;
 import com.walshydev.streamdeck4j.info.Coordinates;
 import lombok.Getter;
 
@@ -18,6 +19,7 @@ public class KeyUpEvent extends Event {
     private final boolean multiAction;
 
     public KeyUpEvent(
+        @Nonnull Plugin plugin,
         @Nonnull String context,
         @Nonnull String action,
         @Nonnull String deviceId,
@@ -27,7 +29,7 @@ public class KeyUpEvent extends Event {
         int userDesiredState,
         boolean multiAction
     ) {
-        super(context);
+        super(plugin, context);
         this.action = action;
         this.deviceId = deviceId;
         this.settings = settings;
