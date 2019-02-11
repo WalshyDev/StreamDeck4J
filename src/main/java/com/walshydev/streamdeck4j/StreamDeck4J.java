@@ -280,7 +280,8 @@ public class StreamDeck4J {
                             logger.error("Invalid JSON for {}", event);
                             break;
                         }
-
+                        
+                        JsonObject titleParameters = payload.get("titleParameters").getAsJsonObject();
                         toSend = new TitleParametersDidChangeEvent(
                             jsonObject.get("context").getAsString(),
                             jsonObject.get("action").getAsString(),
@@ -290,11 +291,13 @@ public class StreamDeck4J {
                             payload.get("settings").getAsJsonObject(),
                             gson.fromJson(payload.get("coordinates").getAsJsonObject(), Coordinates.class),
                             payload.get("state").getAsInt(),
-                            payload.get("showTitle").getAsBoolean(),
                             payload.get("title").getAsString(),
-                            getFont(payload.get("titleParameters").getAsJsonObject()),
-                            Color.decode(payload.get("titleColor").getAsString()),
-                            Alignment.valueOf(payload.get("titleAlignment").getAsString().toUpperCase())
+
+                            // Title Parameters
+                            titleParameters.get("showTitle").getAsBoolean(),
+                            getFont(titleParameters),
+                            Color.decode(titleParameters.get("titleColor").getAsString()),
+                            Alignment.valueOf(titleParameters.get("titleAlignment").getAsString().toUpperCase())
                         );
                         break;
                     case "deviceDidConnect":

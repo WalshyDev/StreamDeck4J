@@ -18,8 +18,8 @@ public class TitleParametersDidChangeEvent extends Event {
     private final JsonObject settings;
     private final Coordinates coordinates;
     private final int state;
-    private final boolean showingTitle;
     private final String title;
+    private final boolean showingTitle;
     private final Font titleFont;
     private final Color titleColor;
     private final Alignment alignment;
@@ -31,8 +31,8 @@ public class TitleParametersDidChangeEvent extends Event {
         @Nonnull JsonObject settings,
         @Nonnull Coordinates coordinates,
         int state,
-        boolean showingTitle,
         @Nonnull String title,
+        boolean showingTitle,
         @Nonnull Font titleFont,
         @Nonnull Color titleColor,
         @Nonnull Alignment alignment
@@ -43,8 +43,8 @@ public class TitleParametersDidChangeEvent extends Event {
         this.settings = settings;
         this.coordinates = coordinates;
         this.state = state;
-        this.showingTitle = showingTitle;
         this.title = title;
+        this.showingTitle = showingTitle;
         this.titleFont = titleFont;
         this.titleColor = titleColor;
         this.alignment = alignment;
