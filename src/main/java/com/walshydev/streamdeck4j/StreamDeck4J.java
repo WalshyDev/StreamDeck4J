@@ -34,6 +34,7 @@ import org.apache.commons.cli.Options;
 import org.apache.commons.cli.ParseException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import sun.font.AttributeMap;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -289,6 +290,7 @@ public class StreamDeck4J {
                             payload.get("settings").getAsJsonObject(),
                             gson.fromJson(payload.get("coordinates").getAsJsonObject(), Coordinates.class),
                             payload.get("state").getAsInt(),
+                            payload.get("showTitle").getAsBoolean(),
                             payload.get("title").getAsString(),
                             getFont(payload.get("titleParameters").getAsJsonObject()),
                             Color.decode(payload.get("titleColor").getAsString()),
@@ -410,7 +412,7 @@ public class StreamDeck4J {
             getFontStyle(titleParameters.get("fontStyle").getAsString()),
             fontSize);
         if (titleParameters.get("fontUnderline").getAsBoolean()) {
-            Map<TextAttribute, Integer> attributes = (HashMap<TextAttribute, Integer>) f.getAttributes();
+            AttributeMap attributes = (AttributeMap) f.getAttributes();
             attributes.put(TextAttribute.UNDERLINE, TextAttribute.UNDERLINE_ON);
             f = f.deriveFont(attributes);
         }
