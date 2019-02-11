@@ -220,7 +220,7 @@ class EventTests {
         Event event = plugin.handleEvent(obj);
 
         assertNotNull(event);
-        assertEquals(ActionDisappearedEvent.class, event.getClass());
+        assertEquals(TitleParametersDidChangeEvent.class, event.getClass());
 
         TitleParametersDidChangeEvent titleParametersDidChangeEvent = (TitleParametersDidChangeEvent) event;
         assertEquals(EXAMPLE_ACTION, titleParametersDidChangeEvent.getAction());

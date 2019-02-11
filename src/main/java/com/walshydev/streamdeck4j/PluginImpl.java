@@ -32,6 +32,7 @@ import org.apache.commons.cli.DefaultParser;
 import org.apache.commons.cli.Options;
 import org.apache.commons.cli.ParseException;
 import org.slf4j.Logger;
+import sun.font.AttributeMap;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -202,7 +203,7 @@ public final class PluginImpl implements Plugin {
         );
 
         if (titleParameters.get("fontUnderline").getAsBoolean()) {
-            Map<TextAttribute, Integer> attributes = (HashMap<TextAttribute, Integer>) f.getAttributes();
+            AttributeMap attributes = (AttributeMap) f.getAttributes();
             attributes.put(TextAttribute.UNDERLINE, TextAttribute.UNDERLINE_ON);
             f = f.deriveFont(attributes);
         }
@@ -308,7 +309,7 @@ public final class PluginImpl implements Plugin {
                     logger.error("Invalid JSON for {}", event);
                     break;
                 }
-
+                JsonObject titleParameters = payload.get("titleParameters").getAsJsonObject();
                 return new TitleParametersDidChangeEvent(
                     this,
                     jsonObject.get("context").getAsString(),
@@ -319,10 +320,13 @@ public final class PluginImpl implements Plugin {
                     payload.get("settings").getAsJsonObject(),
                     gson.fromJson(payload.get("coordinates").getAsJsonObject(), Coordinates.class),
                     payload.get("state").getAsInt(),
+                    payload.get("titleParameters").getAsJsonObject().get("showTitle").getAsBoolean(),
                     payload.get("title").getAsString(),
-                    getFont(payload.get("titleParameters").getAsJsonObject()),
-                    Color.decode(payload.get("titleColor").getAsString()),
-                    Alignment.valueOf(payload.get("titleAlignment").getAsString().toUpperCase())
+
+                    // Title Parameters
+                    getFont(titleParameters),
+                    Color.decode(titleParameters.get("titleColor").getAsString()),
+                    Alignment.valueOf(titleParameters.get("titleAlignment").getAsString().toUpperCase())
                 );
             case "deviceDidConnect":
                 return new DeviceConnectedEvent(
