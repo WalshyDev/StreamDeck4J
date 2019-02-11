@@ -320,10 +320,10 @@ public final class PluginImpl implements Plugin {
                     payload.get("settings").getAsJsonObject(),
                     gson.fromJson(payload.get("coordinates").getAsJsonObject(), Coordinates.class),
                     payload.get("state").getAsInt(),
-                    payload.get("titleParameters").getAsJsonObject().get("showTitle").getAsBoolean(),
                     payload.get("title").getAsString(),
 
                     // Title Parameters
+                    titleParameters.get("showTitle").getAsBoolean(),
                     getFont(titleParameters),
                     Color.decode(titleParameters.get("titleColor").getAsString()),
                     Alignment.valueOf(titleParameters.get("titleAlignment").getAsString().toUpperCase())
