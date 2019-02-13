@@ -55,6 +55,7 @@ public class StreamDeck4J {
     private UUID pluginUUID;
     private Application application;
     private Set<Device> devices;
+    private int devicePixelRatio;
     private boolean registered;
 
     /**
@@ -118,6 +119,7 @@ public class StreamDeck4J {
         Type devicesType = new TypeToken<Set<Device>>() {
         }.getType();
         this.devices = gson.fromJson(infoObj.get("devices").getAsJsonArray(), devicesType);
+        this.devicePixelRatio = infoObj.get("devicePixelRatio").getAsInt();
 
         try {
             logger.debug("Creating websocket at 'ws://localhost:{}'", cmd.getOptionValue("port"));
