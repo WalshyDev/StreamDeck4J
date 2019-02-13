@@ -435,6 +435,14 @@ public class StreamDeck4J {
     public Set<Device> getDevices() {
         return this.devices;
     }
+    
+    /**
+     * This can be used to see if the Stream Deck application is running
+     * on a HiDPI screen
+     */
+    public int getDevicePixelRatio() {
+        return this.devicePixelRatio;
+    }
 
     /**
      * Gets the plugin UUID as a String. Used for context in some function.
