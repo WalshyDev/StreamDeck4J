@@ -38,7 +38,6 @@ import java.util.Arrays;
 import java.util.Base64;
 import java.util.Map;
 import java.util.Set;
-import java.util.UUID;
 
 @SuppressWarnings({"unused", "WeakerAccess", "SameParameterValue", "MagicConstant"})
 public final class PluginImpl implements Plugin {
@@ -52,7 +51,7 @@ public final class PluginImpl implements Plugin {
 
     private CommandLine cmd;
     private WebSocket ws;
-    private UUID pluginUUID;
+    private String pluginUUID;
     private Application application;
     private Set<Device> devices;
     private int devicePixelRatio;
@@ -115,13 +114,7 @@ public final class PluginImpl implements Plugin {
             System.exit(1);
         }
 
-        String passedUUID = cmd.getOptionValue("pluginUUID");
-        // In 4.1b2 they changed the UUID that is passed in, it no longer has dashes... for some reason.
-        if (!passedUUID.contains("-")) {
-            passedUUID = passedUUID.replaceAll("(\\w{8})(\\w{4})(\\w{4})(\\w{4})(\\w{12})", "$1-$2-$3-$4-$5");
-        }
-
-        this.pluginUUID = UUID.fromString(passedUUID);
+        this.pluginUUID = cmd.getOptionValue("pluginUUID");
 
         // Parse the info argument passed in, from this we can get the application info and also what devices are
         // connected
@@ -436,7 +429,7 @@ public final class PluginImpl implements Plugin {
 
     @Override
     public String getPluginUUID() {
-        return this.pluginUUID.toString().toUpperCase();
+        return this.pluginUUID.toUpperCase();
     }
 
     @Override
