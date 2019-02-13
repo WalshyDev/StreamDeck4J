@@ -3,7 +3,6 @@ package com.walshydev.streamdeck4j;
 import com.google.gson.Gson;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
-import com.google.gson.annotations.Since;
 import com.google.gson.reflect.TypeToken;
 import com.neovisionaries.ws.client.WebSocket;
 import com.neovisionaries.ws.client.WebSocketAdapter;
@@ -11,7 +10,21 @@ import com.neovisionaries.ws.client.WebSocketException;
 import com.neovisionaries.ws.client.WebSocketFactory;
 import com.neovisionaries.ws.client.WebSocketFrame;
 import com.neovisionaries.ws.client.WebSocketState;
-import com.walshydev.streamdeck4j.events.*;
+import com.walshydev.streamdeck4j.events.ActionAppearedEvent;
+import com.walshydev.streamdeck4j.events.ActionDisappearedEvent;
+import com.walshydev.streamdeck4j.events.ApplicationLaunchedEvent;
+import com.walshydev.streamdeck4j.events.ApplicationTerminatedEvent;
+import com.walshydev.streamdeck4j.events.DeviceConnectedEvent;
+import com.walshydev.streamdeck4j.events.DeviceDisconnectedEvent;
+import com.walshydev.streamdeck4j.events.DidReceiveGlobalSettingsEvent;
+import com.walshydev.streamdeck4j.events.DidReceiveSettingsEvent;
+import com.walshydev.streamdeck4j.events.Event;
+import com.walshydev.streamdeck4j.events.KeyDownEvent;
+import com.walshydev.streamdeck4j.events.KeyUpEvent;
+import com.walshydev.streamdeck4j.events.PropertyInspectorDidAppearEvent;
+import com.walshydev.streamdeck4j.events.PropertyInspectorDidDisappearEvent;
+import com.walshydev.streamdeck4j.events.SentToPluginEvent;
+import com.walshydev.streamdeck4j.events.TitleParametersDidChangeEvent;
 import com.walshydev.streamdeck4j.hooks.EventListener;
 import com.walshydev.streamdeck4j.info.Alignment;
 import com.walshydev.streamdeck4j.info.Application;
@@ -40,7 +53,6 @@ import java.lang.reflect.Type;
 import java.net.URL;
 import java.util.Arrays;
 import java.util.Base64;
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -280,7 +292,7 @@ public class StreamDeck4J {
                             logger.error("Invalid JSON for {}", event);
                             break;
                         }
-                        
+
                         JsonObject titleParameters = payload.get("titleParameters").getAsJsonObject();
                         toSend = new TitleParametersDidChangeEvent(
                             jsonObject.get("context").getAsString(),
@@ -340,17 +352,17 @@ public class StreamDeck4J {
                             logger.error("Invalid JSON for {}", event);
                             break;
                         }
-                    
+
                         toSend = new DidReceiveSettingsEvent(
-                                jsonObject.get("context").getAsString(),
-                                jsonObject.get("action").getAsString(),
-                                jsonObject.get("device").getAsString(),
-                                // Payload data
-                                payload.get("settings").getAsJsonObject(),
-                                gson.fromJson(payload.get("coordinates").getAsJsonObject(), Coordinates.class),
-                                payload.get("isInMultiAction").getAsBoolean()
+                            jsonObject.get("context").getAsString(),
+                            jsonObject.get("action").getAsString(),
+                            jsonObject.get("device").getAsString(),
+                            // Payload data
+                            payload.get("settings").getAsJsonObject(),
+                            gson.fromJson(payload.get("coordinates").getAsJsonObject(), Coordinates.class),
+                            payload.get("isInMultiAction").getAsBoolean()
                         );
-                        break;   
+                        break;
                     case "didReceiveGlobalSettings":
                         if (payload == null) {
                             logger.error("Invalid JSON for {}", event);
@@ -358,21 +370,21 @@ public class StreamDeck4J {
                         }
 
                         toSend = new DidReceiveGlobalSettingsEvent(
-                                payload.get("settings").getAsJsonObject()
+                            payload.get("settings").getAsJsonObject()
                         );
                         break;
                     case "propertyInspectorDidAppear":
                         toSend = new PropertyInspectorDidAppearEvent(
-                                jsonObject.get("action").getAsString(),
-                                jsonObject.get("context").getAsString(),
-                                jsonObject.get("device").getAsString()
+                            jsonObject.get("action").getAsString(),
+                            jsonObject.get("context").getAsString(),
+                            jsonObject.get("device").getAsString()
                         );
                         break;
                     case "propertyInspectorDidDisappear":
                         toSend = new PropertyInspectorDidDisappearEvent(
-                                jsonObject.get("action").getAsString(),
-                                jsonObject.get("context").getAsString(),
-                                jsonObject.get("device").getAsString()
+                            jsonObject.get("action").getAsString(),
+                            jsonObject.get("context").getAsString(),
+                            jsonObject.get("device").getAsString()
                         );
                         break;
                     default:
@@ -482,6 +494,7 @@ public class StreamDeck4J {
     /////////////////////////
     // Public methods
     /////////////////////////
+
     /**
      * Adds an event listener to the plugin
      *
@@ -508,7 +521,7 @@ public class StreamDeck4J {
     public Set<Device> getDevices() {
         return this.devices;
     }
-    
+
     /**
      * This can be used to see if the Stream Deck application is running
      * on a HiDPI screen
@@ -642,7 +655,7 @@ public class StreamDeck4J {
     }
 
     /**
-     * Saves persistent data for the instance of the action. 
+     * Saves persistent data for the instance of the action.
      * This data is found through events such as keyDown, keyUp, willAppear, etc.
      * You can get it by calling `getSettings()` on the event inside an EventListener.
      * ELI5: saves some data to the stream deck so if you restart it, it's still there
@@ -659,7 +672,6 @@ public class StreamDeck4J {
      * Gets the persistent global settings
      *
      * @since StreamDeck 4.1
-     *
      */
     public void getGlobalSettings() {
         logger.trace("getGlobalSettings(context)");
@@ -670,9 +682,8 @@ public class StreamDeck4J {
     /**
      * Sets the persistent global settings
      *
-     * @since StreamDeck 4.1
-     *
      * @param dataToSave The JSON data to save to the global settings
+     * @since StreamDeck 4.1
      */
     public void setGlobalSettings(@Nonnull JsonObject dataToSave) {
         logger.trace("setGlobalSettings(context, dataToSave)");
@@ -733,7 +744,7 @@ public class StreamDeck4J {
 
     /**
      * Writes a debug message to the logs file.
-     *
+     * <p>
      * <p>
      * Note that logging is disabled by default. To enable logging, maintain the alt/option key down while opening the
      * tray menu/menubar and enable Debug Logs. Future logs will be saved to disk in the folder
@@ -741,9 +752,8 @@ public class StreamDeck4J {
      * Note that the log files are rotated each time the Stream Deck application is relaunched.
      * </p>
      *
-     * @since StreamDeck 4.1
-     *
      * @param message The message to send to the logs file.
+     * @since StreamDeck 4.1
      */
     public void logMessage(@Nonnull String message) {
         logger.trace("logMessage(message)");

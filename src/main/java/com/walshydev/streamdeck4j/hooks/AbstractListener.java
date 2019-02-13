@@ -2,7 +2,16 @@ package com.walshydev.streamdeck4j.hooks;
 
 // TODO: Document
 
-import com.walshydev.streamdeck4j.events.*;
+import com.walshydev.streamdeck4j.events.ActionAppearedEvent;
+import com.walshydev.streamdeck4j.events.ActionDisappearedEvent;
+import com.walshydev.streamdeck4j.events.DeviceConnectedEvent;
+import com.walshydev.streamdeck4j.events.DidReceiveGlobalSettingsEvent;
+import com.walshydev.streamdeck4j.events.DidReceiveSettingsEvent;
+import com.walshydev.streamdeck4j.events.Event;
+import com.walshydev.streamdeck4j.events.KeyDownEvent;
+import com.walshydev.streamdeck4j.events.KeyUpEvent;
+import com.walshydev.streamdeck4j.events.PropertyInspectorDidAppearEvent;
+import com.walshydev.streamdeck4j.events.PropertyInspectorDidDisappearEvent;
 import org.slf4j.LoggerFactory;
 
 public abstract class AbstractListener implements EventListener {
@@ -48,11 +57,11 @@ public abstract class AbstractListener implements EventListener {
             onKeyUp((KeyUpEvent) event);
         else if (event instanceof DidReceiveSettingsEvent)
             onDidReceiveSettings((DidReceiveSettingsEvent) event);
-        else if(event instanceof DidReceiveGlobalSettingsEvent)
+        else if (event instanceof DidReceiveGlobalSettingsEvent)
             onDidReceiveGlobalSettings((DidReceiveGlobalSettingsEvent) event);
         else if (event instanceof PropertyInspectorDidAppearEvent)
             onPropertyInspectorDidAppear((PropertyInspectorDidAppearEvent) event);
-        else if(event instanceof PropertyInspectorDidDisappearEvent)
+        else if (event instanceof PropertyInspectorDidDisappearEvent)
             onPropertyInspectorDidDisappear((PropertyInspectorDidDisappearEvent) event);
         else
             LoggerFactory.getLogger(AbstractListener.class)

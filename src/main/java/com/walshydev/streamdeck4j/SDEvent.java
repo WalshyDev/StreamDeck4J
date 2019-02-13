@@ -28,6 +28,7 @@ public enum SDEvent {
         this.name = name;
         this.hasContext = hasContext;
     }
+
     public String getName() {
         return this.name;
     }

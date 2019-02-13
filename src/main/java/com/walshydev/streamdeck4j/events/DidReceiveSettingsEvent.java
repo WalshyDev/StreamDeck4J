@@ -16,12 +16,12 @@ public class DidReceiveSettingsEvent extends Event {
     private final boolean multiAction;
 
     public DidReceiveSettingsEvent(
-            @Nonnull String context,
-            @Nonnull String action,
-            @Nonnull String deviceId,
-            @Nonnull JsonObject settings,
-            @Nonnull Coordinates coordinates,
-            boolean multiAction
+        @Nonnull String context,
+        @Nonnull String action,
+        @Nonnull String deviceId,
+        @Nonnull JsonObject settings,
+        @Nonnull Coordinates coordinates,
+        boolean multiAction
     ) {
         super(context);
         this.action = action;
