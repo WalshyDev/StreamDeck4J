@@ -13,6 +13,7 @@ import com.neovisionaries.ws.client.WebSocketFrame;
 import com.neovisionaries.ws.client.WebSocketState;
 import com.walshydev.streamdeck4j.events.*;
 import com.walshydev.streamdeck4j.hooks.EventListener;
+import com.walshydev.streamdeck4j.info.Alignment;
 import com.walshydev.streamdeck4j.info.Application;
 import com.walshydev.streamdeck4j.info.Coordinates;
 import com.walshydev.streamdeck4j.info.Destination;
@@ -24,10 +25,14 @@ import org.apache.commons.cli.Options;
 import org.apache.commons.cli.ParseException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import sun.font.AttributeMap;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import javax.imageio.ImageIO;
+import java.awt.Color;
+import java.awt.Font;
+import java.awt.font.TextAttribute;
 import java.awt.image.BufferedImage;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
@@ -35,6 +40,7 @@ import java.lang.reflect.Type;
 import java.net.URL;
 import java.util.Arrays;
 import java.util.Base64;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -195,17 +201,6 @@ public class StreamDeck4J {
                 if (jsonObject.has("payload"))
                     payload = jsonObject.get("payload").getAsJsonObject();
 
-                // All current known receive events:
-                //[X] keyDown
-                //[X] keyUp
-                //[X] willAppear
-                //[X] willDisappear
-                //titleParametersDidChange
-                //[X] deviceDidConnect
-                //deviceDidDisconnect
-                //applicationDidLaunch
-                //applicationDidTerminate
-
                 Event toSend = null;
 
                 switch (event) {
@@ -281,22 +276,71 @@ public class StreamDeck4J {
                         );
                         break;
                     case "titleParametersDidChange":
-                        logger.warn("'{}' isn't implemented yet! Sorry!", jsonObject.get("event").getAsString());
+                        if (payload == null) {
+                            logger.error("Invalid JSON for {}", event);
+                            break;
+                        }
+                        
+                        JsonObject titleParameters = payload.get("titleParameters").getAsJsonObject();
+                        toSend = new TitleParametersDidChangeEvent(
+                            jsonObject.get("context").getAsString(),
+                            jsonObject.get("action").getAsString(),
+                            jsonObject.get("device").getAsString(),
+
+                            // Payload data
+                            payload.get("settings").getAsJsonObject(),
+                            gson.fromJson(payload.get("coordinates").getAsJsonObject(), Coordinates.class),
+                            payload.get("state").getAsInt(),
+                            payload.get("title").getAsString(),
+
+                            // Title Parameters
+                            titleParameters.get("showTitle").getAsBoolean(),
+                            getFont(titleParameters),
+                            Color.decode(titleParameters.get("titleColor").getAsString()),
+                            Alignment.valueOf(titleParameters.get("titleAlignment").getAsString().toUpperCase())
+                        );
                         break;
                     case "deviceDidConnect":
-                        toSend = new DeviceConnectedEvent(null, jsonObject.get("device").getAsString());
+                        toSend = new DeviceConnectedEvent(jsonObject.get("device").getAsString());
                         break;
                     case "deviceDidDisconnect":
+                        toSend = new DeviceDisconnectedEvent(jsonObject.get("device").getAsString());
+                        break;
                     case "applicationDidLaunch":
+                        if (payload == null) {
+                            logger.error("Invalid JSON for {}", event);
+                            break;
+                        }
+
+                        toSend = new ApplicationLaunchedEvent(payload.get("application").getAsString());
+                        break;
                     case "applicationDidTerminate":
-                        logger.warn("'{}' isn't implemented yet! Sorry!", jsonObject.get("event").getAsString());
+                        if (payload == null) {
+                            logger.error("Invalid JSON for {}", event);
+                            break;
+                        }
+
+                        toSend = new ApplicationTerminatedEvent(payload.get("application").getAsString());
+                        break;
+
+                    case "sendToPlugin":
+                        if (payload == null) {
+                            logger.error("Invalid JSON for {}", event);
+                            break;
+                        }
+
+                        toSend = new SentToPluginEvent(
+                            jsonObject.get("context").getAsString(),
+                            jsonObject.get("action").getAsString(),
+                            payload
+                        );
                         break;
                     case "didReceiveSettings":
                         if (payload == null) {
                             logger.error("Invalid JSON for {}", event);
                             break;
                         }
-
+                    
                         toSend = new DidReceiveSettingsEvent(
                                 jsonObject.get("context").getAsString(),
                                 jsonObject.get("action").getAsString(),
@@ -306,7 +350,7 @@ public class StreamDeck4J {
                                 gson.fromJson(payload.get("coordinates").getAsJsonObject(), Coordinates.class),
                                 payload.get("isInMultiAction").getAsBoolean()
                         );
-                        break;
+                        break;   
                     case "didReceiveGlobalSettings":
                         if (payload == null) {
                             logger.error("Invalid JSON for {}", event);
@@ -404,6 +448,35 @@ public class StreamDeck4J {
     private void sendPayload(@Nonnull JsonObject object) {
         logger.trace("-- SENT: " + object.toString());
         ws.sendBinary(object.toString().getBytes());
+    }
+
+    @SuppressWarnings("unchecked")
+    private Font getFont(JsonObject titleParameters) {
+        int fontSize = titleParameters.get("fontSize").getAsInt();
+        if (fontSize > 18 || fontSize < 6)
+            throw new IllegalArgumentException("Received font size value outside of the range 6-18... is this ever meant to happen?");
+        Font f = new Font(
+            titleParameters.get("fontFamily").getAsString(),
+            getFontStyle(titleParameters.get("fontStyle").getAsString()),
+            fontSize);
+        if (titleParameters.get("fontUnderline").getAsBoolean()) {
+            AttributeMap attributes = (AttributeMap) f.getAttributes();
+            attributes.put(TextAttribute.UNDERLINE, TextAttribute.UNDERLINE_ON);
+            f = f.deriveFont(attributes);
+        }
+        return f;
+    }
+
+    private int getFontStyle(String fontStyle) {
+        fontStyle = fontStyle.toLowerCase();
+        if (fontStyle.contains("bold") && fontStyle.contains("italic"))
+            return Font.BOLD + Font.ITALIC;
+        else if (fontStyle.contains("bold"))
+            return Font.BOLD;
+        else if (fontStyle.contains("italic"))
+            return Font.ITALIC;
+        else
+            return Font.PLAIN;
     }
 
     /////////////////////////
