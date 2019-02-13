@@ -59,7 +59,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
 
-@SuppressWarnings({"unused", "WeakerAccess", "SameParameterValue"})
+@SuppressWarnings({"unused", "WeakerAccess", "SameParameterValue", "MagicConstant"})
 public class StreamDeck4J {
 
     private static final Logger logger = LoggerFactory.getLogger(StreamDeck4J.class);
