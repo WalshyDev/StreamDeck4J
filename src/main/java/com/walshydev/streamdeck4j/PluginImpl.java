@@ -7,17 +7,7 @@ import com.google.gson.reflect.TypeToken;
 import com.neovisionaries.ws.client.WebSocket;
 import com.neovisionaries.ws.client.WebSocketException;
 import com.neovisionaries.ws.client.WebSocketFactory;
-import com.walshydev.streamdeck4j.events.ActionAppearedEvent;
-import com.walshydev.streamdeck4j.events.ActionDisappearedEvent;
-import com.walshydev.streamdeck4j.events.ApplicationLaunchedEvent;
-import com.walshydev.streamdeck4j.events.ApplicationTerminatedEvent;
-import com.walshydev.streamdeck4j.events.DeviceConnectedEvent;
-import com.walshydev.streamdeck4j.events.DeviceDisconnectedEvent;
-import com.walshydev.streamdeck4j.events.Event;
-import com.walshydev.streamdeck4j.events.KeyDownEvent;
-import com.walshydev.streamdeck4j.events.KeyUpEvent;
-import com.walshydev.streamdeck4j.events.SentToPluginEvent;
-import com.walshydev.streamdeck4j.events.TitleParametersDidChangeEvent;
+import com.walshydev.streamdeck4j.events.*;
 import com.walshydev.streamdeck4j.hooks.EventListener;
 import com.walshydev.streamdeck4j.hooks.WebsocketListener;
 import com.walshydev.streamdeck4j.info.Alignment;
@@ -32,7 +22,6 @@ import org.apache.commons.cli.DefaultParser;
 import org.apache.commons.cli.Options;
 import org.apache.commons.cli.ParseException;
 import org.slf4j.Logger;
-import sun.font.AttributeMap;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -47,12 +36,11 @@ import java.lang.reflect.Type;
 import java.net.URL;
 import java.util.Arrays;
 import java.util.Base64;
-import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
 
-@SuppressWarnings({"unused", "WeakerAccess", "SameParameterValue"})
+@SuppressWarnings({"unused", "WeakerAccess", "SameParameterValue", "MagicConstant"})
 public final class PluginImpl implements Plugin {
 
     private static final Logger logger = SD4JLogger.getLog(Plugin.class);
@@ -67,6 +55,7 @@ public final class PluginImpl implements Plugin {
     private UUID pluginUUID;
     private Application application;
     private Set<Device> devices;
+    private int devicePixelRatio;
     private boolean registered;
 
     public PluginImpl(Set<EventListener> listeners, WebSocketFactory factory) {
@@ -84,6 +73,13 @@ public final class PluginImpl implements Plugin {
         logger.trace("Parsing arguments - " + Arrays.toString(args));
         parseArguments(args);
         logger.trace("Parsed arguments - " + Arrays.toString(cmd.getOptions()));
+
+        Thread.setDefaultUncaughtExceptionHandler(((t, e) ->
+            logger.error("Uncaught exception in {} - {}", t.getName(), e.getClass().getSimpleName(), e))
+        );
+        Thread.currentThread().setUncaughtExceptionHandler(((t, e) ->
+            logger.error("Uncaught exception in {} - {}", t.getName(), e.getClass().getSimpleName(), e))
+        );
 
         logger.debug("Connecting to websocket");
         connectToWebsocket(async);
@@ -128,6 +124,10 @@ public final class PluginImpl implements Plugin {
         Type devicesType = new TypeToken<Set<Device>>() {
         }.getType();
         this.devices = gson.fromJson(infoObj.get("devices").getAsJsonArray(), devicesType);
+        if (infoObj.has("devicePixelRatio"))
+            this.devicePixelRatio = infoObj.get("devicePixelRatio").getAsInt();
+        else
+            logger.warn("Using SDK v1 - It is recommended to use SDK version 2!");
 
         try {
             logger.debug("Creating websocket at 'ws://localhost:{}'", cmd.getOptionValue("port"));
@@ -148,10 +148,6 @@ public final class PluginImpl implements Plugin {
                 System.exit(1);
             }
         }
-    }
-
-    public String getPluginUUID() {
-        return this.pluginUUID.toString().toUpperCase();
     }
 
     public boolean isRegistered() {
@@ -203,7 +199,7 @@ public final class PluginImpl implements Plugin {
         );
 
         if (titleParameters.get("fontUnderline").getAsBoolean()) {
-            AttributeMap attributes = (AttributeMap) f.getAttributes();
+            Map<TextAttribute, Integer> attributes = (Map<TextAttribute, Integer>) f.getAttributes();
             attributes.put(TextAttribute.UNDERLINE, TextAttribute.UNDERLINE_ON);
             f = f.deriveFont(attributes);
         }
@@ -359,12 +355,51 @@ public final class PluginImpl implements Plugin {
                     jsonObject.get("action").getAsString(),
                     payload
                 );
+            case "didReceiveSettings":
+                if (payload == null) {
+                    logger.error("Invalid JSON for {}", event);
+                    break;
+                }
+
+                return new DidReceiveSettingsEvent(
+                    this,
+                    jsonObject.get("context").getAsString(),
+                    jsonObject.get("action").getAsString(),
+                    jsonObject.get("device").getAsString(),
+                    // Payload data
+                    payload.get("settings").getAsJsonObject(),
+                    gson.fromJson(payload.get("coordinates").getAsJsonObject(), Coordinates.class),
+                    payload.get("isInMultiAction").getAsBoolean()
+                );
+            case "didReceiveGlobalSettings":
+                if (payload == null) {
+                    logger.error("Invalid JSON for {}", event);
+                    break;
+                }
+
+                return new DidReceiveGlobalSettingsEvent(
+                    this,
+                    payload.get("settings").getAsJsonObject()
+                );
+            case "propertyInspectorDidAppear":
+                return new PropertyInspectorDidAppearEvent(
+                    this,
+                    jsonObject.get("action").getAsString(),
+                    jsonObject.get("context").getAsString(),
+                    jsonObject.get("device").getAsString()
+                );
+            case "propertyInspectorDidDisappear":
+                return new PropertyInspectorDidDisappearEvent(
+                    this,
+                    jsonObject.get("action").getAsString(),
+                    jsonObject.get("context").getAsString(),
+                    jsonObject.get("device").getAsString()
+                );
             default:
                 logger.warn(
                     "Received unknown event! '{}' - Ignoring for now!",
                     jsonObject.get("event").getAsString()
                 );
-                break;
         }
         return null;
     }
@@ -373,18 +408,32 @@ public final class PluginImpl implements Plugin {
     // Public methods
     /////////////////////////
 
+    @Override
     public void addListener(@Nonnull EventListener eventListener) {
         this.listeners.add(eventListener);
     }
 
+    @Override
     public Application getApplication() {
         return application;
     }
 
+    @Override
     public Set<Device> getDevices() {
         return this.devices;
     }
 
+    @Override
+    public int getDevicePixelRatio() {
+        return this.devicePixelRatio;
+    }
+
+    @Override
+    public String getPluginUUID() {
+        return this.pluginUUID.toString().toUpperCase();
+    }
+
+    @Override
     public void openURL(@Nonnull URL url) {
         logger.trace("openURL(url)");
         JsonObject payload = new JsonObject();
@@ -393,6 +442,7 @@ public final class PluginImpl implements Plugin {
         sendEvent(SDEvent.OPEN_URL, payload);
     }
 
+    @Override
     public void setTitle(@Nonnull String context, @Nonnull String title, @Nonnull Destination destination) {
         logger.trace("setTitle(context, title, destination)");
         JsonObject obj = new JsonObject();
@@ -401,11 +451,13 @@ public final class PluginImpl implements Plugin {
         sendEvent(SDEvent.SET_TITLE, obj, context);
     }
 
+    @Override
     public void setImage(@Nonnull String context, BufferedImage image, Destination destination) {
         logger.trace("setImage(context, image, destination)");
         setImage(context, image, "png", destination);
     }
 
+    @Override
     public void setImage(@Nonnull String context, BufferedImage image, String type, Destination destination) {
         logger.trace("setImage(context, image, type, destination)");
         ByteArrayOutputStream baos = new ByteArrayOutputStream();
@@ -419,6 +471,7 @@ public final class PluginImpl implements Plugin {
         setImage(context, Base64.getEncoder().encodeToString(imageBytes), type, destination);
     }
 
+    @Override
     public void setImage(@Nonnull String context, String base64Encoded, String type, Destination destination) {
         logger.trace("setImage(context, base64Encoded, type, destination)");
         if (!base64Encoded.startsWith("data:image")) {
@@ -431,21 +484,46 @@ public final class PluginImpl implements Plugin {
         sendEvent(SDEvent.SET_IMAGE, payload, context);
     }
 
+    @Override
     public void showAlert(@Nonnull String context) {
         logger.trace("showAlert(context)");
         sendEvent(SDEvent.SHOW_ALERT, null, context);
     }
 
+    @Override
     public void showOk(@Nonnull String context) {
         logger.trace("showOk(context)");
         sendEvent(SDEvent.SHOW_OK, null, context);
     }
 
+    @Override
+    public void getSettings(@Nonnull String context) {
+        logger.trace("getSettings(context)");
+        sendEvent(SDEvent.GET_SETTINGS, null, context);
+        // TODO: Implement returning the JsonObject from this event. Walshy, I'm looking at you :eyes:
+        // Docs: https://edge.elgato.com/egc/sd_content/releasenotes/4.1b1.html
+    }
+
+    @Override
     public void setSettings(@Nonnull String context, @Nonnull JsonObject dataToSave) {
         logger.trace("setSettings(context, dataToSave)");
         sendEvent(SDEvent.SET_SETTINGS, dataToSave, context);
     }
 
+    @Override
+    public void getGlobalSettings() {
+        logger.trace("getGlobalSettings(context)");
+        sendEvent(SDEvent.GET_GLOBAL_SETTINGS, null, getPluginUUID());
+        // TODO: Implement return value.
+    }
+
+    @Override
+    public void setGlobalSettings(@Nonnull JsonObject dataToSave) {
+        logger.trace("setGlobalSettings(context, dataToSave)");
+        sendEvent(SDEvent.SET_GLOBAL_SETTINGS, dataToSave, getPluginUUID());
+    }
+
+    @Override
     public void setState(@Nonnull String context, int state) {
         logger.trace("setState(context, state)");
         JsonObject payload = new JsonObject();
@@ -453,6 +531,7 @@ public final class PluginImpl implements Plugin {
         sendEvent(SDEvent.SET_STATE, payload, context);
     }
 
+    @Override
     public void sendToPropertyInspector(@Nonnull String context, @Nonnull String action, @Nonnull JsonObject payload) {
         logger.trace("sendToPropertyInspector(context, action, payload)");
         JsonObject eventJson = new JsonObject();
@@ -464,6 +543,7 @@ public final class PluginImpl implements Plugin {
         sendPayload(eventJson);
     }
 
+    @Override
     public void switchToProfile(@Nonnull String deviceId, @Nonnull String profile) {
         logger.trace("switchToProfile(context, deviceId, payload)");
         JsonObject eventJson = new JsonObject();
@@ -473,6 +553,20 @@ public final class PluginImpl implements Plugin {
 
         JsonObject payload = new JsonObject();
         payload.addProperty("profile", profile);
+
+        eventJson.add("payload", payload);
+
+        sendPayload(eventJson);
+    }
+
+    @Override
+    public void logMessage(@Nonnull String message) {
+        logger.trace("logMessage(message)");
+        JsonObject eventJson = new JsonObject();
+        eventJson.addProperty("event", SDEvent.LOG_MESSAGE.getName());
+
+        JsonObject payload = new JsonObject();
+        payload.addProperty("message", message);
 
         eventJson.add("payload", payload);
 

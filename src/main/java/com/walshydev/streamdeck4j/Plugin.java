@@ -36,6 +36,19 @@ public interface Plugin {
     Set<Device> getDevices();
 
     /**
+     * This can be used to see if the Stream Deck application is running
+     * on a HiDPI screen
+     */
+    int getDevicePixelRatio();
+
+    /**
+     * Get the plugin UUID.
+     *
+     * @return The plugin UUID passed into the program arguments.
+     */
+    String getPluginUUID();
+
+    /**
      * Opens a URL on the PC the Stream Deck is connected to.
      *
      * @param url The URL to open
@@ -96,6 +109,30 @@ public interface Plugin {
     void showOk(@Nonnull String context);
 
     /**
+     * Gets the persistent data of an instance of an action.
+     *
+     * @param context The unique identifier of the button with the action you want to grab data for.
+     *
+     * @since StreamDeck 4.1
+     */
+    void getSettings(@Nonnull String context);
+
+    /**
+     * Gets the persistent global settings
+     *
+     * @since StreamDeck 4.1
+     */
+    void getGlobalSettings();
+
+    /**
+     * Sets the persistent global settings
+     *
+     * @param dataToSave The JSON data to save to the global settings
+     * @since StreamDeck 4.1
+     */
+    void setGlobalSettings(@Nonnull JsonObject dataToSave);
+
+    /**
      * Saves persistent data for the instance of the action. This data is found through events such as keyDown, keyUp,
      * willAppear, etc. You can get it by calling `getSettings()` on the event inside an EventListener. ELI5: saves some
      * data to the stream deck so if you restart it, it's still there
@@ -130,4 +167,20 @@ public interface Plugin {
      * @param profile  The name of the profile you want to switch to.
      */
     void switchToProfile(@Nonnull String deviceId, @Nonnull String profile);
+
+    /**
+     * Writes a debug message to the logs file.
+     *
+     * <p>
+     * Note that logging is disabled by default. To enable logging, maintain the alt/option key down while opening the
+     * tray menu/menubar and enable Debug Logs. Future logs will be saved to disk in the folder
+     * {@code ~/Library/Logs/StreamDeck/} on macOS and {@code %appdata%\Roaming\Elgato\StreamDeck\logs\} on Windows.
+     * Note that the log files are rotated each time the Stream Deck application is relaunched.
+     * </p>
+     *
+     * @param message The message to send to the logs file.
+     *
+     * @since StreamDeck 4.1
+     */
+    void logMessage(@Nonnull String message);
 }

@@ -23,7 +23,6 @@ public static void main(String[] args) {
 }
 ```
 
-**I recommend adding a logger in, slf4j-api is a dependency and logging is setup. You can add your on implementation. Logback-classic is a nice one, example logback.xml [here](https://gist.github.com/WalshyDev/dfcd1f155b71c68bf596deb44bf6e15f)**
 
 ## Building for the StreamDeck
 1. Compile your jar with your build tool
