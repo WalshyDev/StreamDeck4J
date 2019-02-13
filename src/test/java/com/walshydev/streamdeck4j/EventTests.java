@@ -1,17 +1,9 @@
 package com.walshydev.streamdeck4j;
 
 import com.google.gson.Gson;
+import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
-import com.walshydev.streamdeck4j.events.ActionAppearedEvent;
-import com.walshydev.streamdeck4j.events.ActionDisappearedEvent;
-import com.walshydev.streamdeck4j.events.ApplicationLaunchedEvent;
-import com.walshydev.streamdeck4j.events.ApplicationTerminatedEvent;
-import com.walshydev.streamdeck4j.events.DeviceConnectedEvent;
-import com.walshydev.streamdeck4j.events.DeviceDisconnectedEvent;
-import com.walshydev.streamdeck4j.events.Event;
-import com.walshydev.streamdeck4j.events.KeyDownEvent;
-import com.walshydev.streamdeck4j.events.KeyUpEvent;
-import com.walshydev.streamdeck4j.events.TitleParametersDidChangeEvent;
+import com.walshydev.streamdeck4j.events.*;
 import com.walshydev.streamdeck4j.info.Alignment;
 import com.walshydev.streamdeck4j.info.Coordinates;
 import com.walshydev.streamdeck4j.info.Device;
@@ -23,6 +15,7 @@ import java.awt.font.TextAttribute;
 import java.util.HashSet;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
@@ -238,8 +231,7 @@ class EventTests {
             TextAttribute.UNDERLINE_ON,
             titleParametersDidChangeEvent.getTitleFont().getAttributes().get(TextAttribute.UNDERLINE)
         );
-        // TODO: Add `showTitle` check
-//        assertTrue(titleParametersDidChangeEvent.get());
+        assertTrue(titleParametersDidChangeEvent.isShowingTitle());
         assertEquals(Alignment.TOP, titleParametersDidChangeEvent.getAlignment());
         assertEquals(Color.decode("#131313"), titleParametersDidChangeEvent.getTitleColor());
     }
@@ -351,5 +343,151 @@ class EventTests {
 
         applicationTerminatedEvent = (ApplicationTerminatedEvent) event;
         assertEquals("com.apple.mail", applicationTerminatedEvent.getApplicationName());
+    }
+
+    @Test
+    void testSendToPlugin() {
+        JsonObject obj = new JsonObject();
+        obj.addProperty("action", EXAMPLE_ACTION);
+        obj.addProperty("event", SDEvent.SEND_TO_PLUGIN.getName());
+        obj.addProperty("context", EXAMPLE_CONTEXT);
+
+        JsonObject payload = new JsonObject();
+        payload.addProperty("SomePayloadData", "abc123");
+        payload.addProperty("SomeOtherPayloadData", 1.245);
+
+        JsonArray arr = new JsonArray();
+        arr.add('a');
+        arr.add("1");
+        arr.add(false);
+        payload.add("SomeArrayData", arr);
+
+        obj.add("payload", payload);
+
+        Event event = plugin.handleEvent(obj);
+
+        assertNotNull(event);
+        assertEquals(SentToPluginEvent.class, event.getClass());
+
+        SentToPluginEvent sentToPlugin = (SentToPluginEvent) event;
+        assertEquals(EXAMPLE_ACTION, sentToPlugin.getAction());
+        assertEquals(EXAMPLE_CONTEXT, sentToPlugin.getContext());
+
+        JsonObject returnedPayload = sentToPlugin.getPayload();
+        assertNotNull(returnedPayload);
+        assertEquals("abc123", returnedPayload.get("SomePayloadData").getAsString());
+        assertEquals(1.245, returnedPayload.get("SomeOtherPayloadData").getAsDouble());
+        assertEquals(arr, returnedPayload.get("SomeArrayData").getAsJsonArray());
+    }
+
+    @Test
+    void testDidReceiveSettings() {
+        JsonObject obj = new JsonObject();
+        obj.addProperty("action", EXAMPLE_ACTION);
+        obj.addProperty("event", SDEvent.DID_RECEIVE_SETTINGS.getName());
+        obj.addProperty("context", EXAMPLE_CONTEXT);
+        obj.addProperty("device", EXAMPLE_DEVICE);
+
+        JsonObject settings = new JsonObject();
+        settings.addProperty("test", "abc123");
+
+        Coordinates coordinates = new Coordinates(5, 3);
+
+        JsonObject payload = new JsonObject();
+        payload.add("settings", settings);
+        payload.add("coordinates", gson.toJsonTree(coordinates));
+        payload.addProperty("isInMultiAction", false);
+
+        obj.add("payload", payload);
+
+        Event event = plugin.handleEvent(obj);
+
+        assertNotNull(event);
+        assertEquals(DidReceiveSettingsEvent.class, event.getClass());
+
+        DidReceiveSettingsEvent didReceiveSettings = (DidReceiveSettingsEvent) event;
+        assertEquals(EXAMPLE_ACTION, didReceiveSettings.getAction());
+        assertEquals(EXAMPLE_CONTEXT, didReceiveSettings.getContext());
+        assertEquals(EXAMPLE_DEVICE, didReceiveSettings.getDeviceId());
+        assertEquals("abc123", didReceiveSettings.getSettings().get("test").getAsString());
+        assertEquals(coordinates.getColumn(), didReceiveSettings.getCoordinates().getColumn());
+        assertFalse(didReceiveSettings.isMultiAction());
+    }
+
+    @Test
+    void testDidReceiveGlobalSettings() {
+        JsonObject obj = new JsonObject();
+        obj.addProperty("event", SDEvent.DID_RECEIVE_GLOBAL_SETTINGS.getName());
+
+        JsonObject settings = new JsonObject();
+        settings.addProperty("test", "abc123");
+
+        JsonObject payload = new JsonObject();
+        payload.add("settings", settings);
+
+        obj.add("payload", payload);
+
+        Event event = plugin.handleEvent(obj);
+
+        assertNotNull(event);
+        assertEquals(DidReceiveGlobalSettingsEvent.class, event.getClass());
+
+        DidReceiveGlobalSettingsEvent didReceiveSettings = (DidReceiveGlobalSettingsEvent) event;
+        assertEquals("abc123", didReceiveSettings.getSettings().get("test").getAsString());
+    }
+
+    @Test
+    void testPropertyInspectorDidAppear() {
+        JsonObject obj = new JsonObject();
+        obj.addProperty("action", EXAMPLE_ACTION);
+        obj.addProperty("event", SDEvent.PROPERTY_INSPECTOR_DID_APPEAR.getName());
+        obj.addProperty("context", EXAMPLE_CONTEXT);
+        obj.addProperty("device", EXAMPLE_DEVICE);
+
+        JsonObject settings = new JsonObject();
+        settings.addProperty("test", "abc123");
+
+        JsonObject payload = new JsonObject();
+        payload.add("settings", settings);
+
+        obj.add("payload", payload);
+
+        Event event = plugin.handleEvent(obj);
+
+        assertNotNull(event);
+        assertEquals(PropertyInspectorDidAppearEvent.class, event.getClass());
+
+        PropertyInspectorDidAppearEvent propertyInspectorDidAppearEvent = (PropertyInspectorDidAppearEvent) event;
+        assertEquals(EXAMPLE_ACTION, propertyInspectorDidAppearEvent.getAction());
+        assertEquals(EXAMPLE_CONTEXT, propertyInspectorDidAppearEvent.getContext());
+        assertEquals(EXAMPLE_DEVICE, propertyInspectorDidAppearEvent.getDeviceId());
+    }
+
+    @Test
+    void testPropertyInspectorDidDisappear() {
+        JsonObject obj = new JsonObject();
+        obj.addProperty("action", EXAMPLE_ACTION);
+        obj.addProperty("event", SDEvent.PROPERTY_INSPECTOR_DID_DISAPPEAR.getName());
+        obj.addProperty("context", EXAMPLE_CONTEXT);
+        obj.addProperty("device", EXAMPLE_DEVICE);
+
+        JsonObject settings = new JsonObject();
+        settings.addProperty("test", "abc123");
+
+        JsonObject payload = new JsonObject();
+        payload.add("settings", settings);
+
+        obj.add("payload", payload);
+
+        Event event = plugin.handleEvent(obj);
+
+        assertNotNull(event);
+        assertEquals(PropertyInspectorDidDisappearEvent.class, event.getClass());
+
+        PropertyInspectorDidDisappearEvent propertyInspectorDidDisappearEvent =
+            (PropertyInspectorDidDisappearEvent)event;
+        assertEquals(EXAMPLE_ACTION, propertyInspectorDidDisappearEvent.getAction());
+        assertEquals(EXAMPLE_CONTEXT, propertyInspectorDidDisappearEvent.getContext());
+        assertEquals(EXAMPLE_DEVICE, propertyInspectorDidDisappearEvent.getDeviceId());
     }
 }

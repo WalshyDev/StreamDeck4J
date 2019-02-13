@@ -25,7 +25,11 @@ public enum SDEvent {
     DEVICE_DID_DISCONNECT("deviceDidDisconnect"),
     APPLICATION_DID_LAUNCH("applicationDidLaunch"),
     APPLICATION_DID_TERMINATE("applicationDidTerminate"),
-    SEND_TO_PLUGIN("sendToPlugin", true);
+    SEND_TO_PLUGIN("sendToPlugin", true),
+    DID_RECEIVE_SETTINGS("didReceiveSettings"),
+    DID_RECEIVE_GLOBAL_SETTINGS("didReceiveGlobalSettings"),
+    PROPERTY_INSPECTOR_DID_APPEAR("propertyInspectorDidAppear"),
+    PROPERTY_INSPECTOR_DID_DISAPPEAR("propertyInspectorDidDisappear");
 
     private String name;
     private boolean hasContext;

@@ -115,7 +115,13 @@ public final class PluginImpl implements Plugin {
             System.exit(1);
         }
 
-        this.pluginUUID = UUID.fromString(cmd.getOptionValue("pluginUUID"));
+        String passedUUID = cmd.getOptionValue("pluginUUID");
+        // In 4.1b2 they changed the UUID that is passed in, it no longer has dashes... for some reason.
+        if (!passedUUID.contains("-")) {
+            passedUUID = passedUUID.replaceAll("(\\w{8})(\\w{4})(\\w{4})(\\w{4})(\\w{12})", "$1-$2-$3-$4-$5");
+        }
+
+        this.pluginUUID = UUID.fromString(passedUUID);
 
         // Parse the info argument passed in, from this we can get the application info and also what devices are
         // connected
@@ -384,15 +390,15 @@ public final class PluginImpl implements Plugin {
             case "propertyInspectorDidAppear":
                 return new PropertyInspectorDidAppearEvent(
                     this,
-                    jsonObject.get("action").getAsString(),
                     jsonObject.get("context").getAsString(),
+                    jsonObject.get("action").getAsString(),
                     jsonObject.get("device").getAsString()
                 );
             case "propertyInspectorDidDisappear":
                 return new PropertyInspectorDidDisappearEvent(
                     this,
-                    jsonObject.get("action").getAsString(),
                     jsonObject.get("context").getAsString(),
+                    jsonObject.get("action").getAsString(),
                     jsonObject.get("device").getAsString()
                 );
             default:

@@ -22,5 +22,4 @@ public class SentToPluginEvent extends Event {
         this.action = action;
         this.payload = payload;
     }
-
 }

@@ -43,10 +43,10 @@ public abstract class AbstractListener implements EventListener {
     public void onPropertyInspectorDidDisappear(PropertyInspectorDidDisappearEvent event) {
     }
 
-    public void onSentToPluginEvent(SentToPluginEvent event) {
+    public void onSentToPlugin(SentToPluginEvent event) {
     }
 
-    public void onTitleParametersDidChangeEvent(TitleParametersDidChangeEvent event) {
+    public void onTitleParametersDidChange(TitleParametersDidChangeEvent event) {
     }
 
     @Override
@@ -76,9 +76,9 @@ public abstract class AbstractListener implements EventListener {
         else if (event instanceof PropertyInspectorDidDisappearEvent)
             onPropertyInspectorDidDisappear((PropertyInspectorDidDisappearEvent) event);
         else if (event instanceof SentToPluginEvent)
-            onSentToPluginEvent((SentToPluginEvent) event);
+            onSentToPlugin((SentToPluginEvent) event);
         else if (event instanceof TitleParametersDidChangeEvent)
-            onTitleParametersDidChangeEvent((TitleParametersDidChangeEvent) event);
+            onTitleParametersDidChange((TitleParametersDidChangeEvent) event);
         else
             SD4JLogger.getLog(AbstractListener.class)
                 .error("Unknown event was thrown! {}", event.getClass().getSimpleName());
