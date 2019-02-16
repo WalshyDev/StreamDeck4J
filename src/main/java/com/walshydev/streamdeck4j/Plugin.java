@@ -36,8 +36,7 @@ public interface Plugin {
     Set<Device> getDevices();
 
     /**
-     * This can be used to see if the Stream Deck application is running
-     * on a HiDPI screen
+     * This can be used to see if the Stream Deck application is running on a HiDPI screen
      */
     int getDevicePixelRatio();
 
@@ -95,7 +94,7 @@ public interface Plugin {
     void setImage(@Nonnull String context, String base64Encoded, String type, Destination destination);
 
     /**
-     * Shows an alert on the Stream Deck
+     * Shows an alert on the Stream Deck b
      *
      * @param context The unique identifier of the button to show the alert on.
      */
@@ -112,7 +111,6 @@ public interface Plugin {
      * Gets the persistent data of an instance of an action.
      *
      * @param context The unique identifier of the button with the action you want to grab data for.
-     *
      * @since StreamDeck 4.1
      */
     void getSettings(@Nonnull String context);
@@ -173,13 +171,12 @@ public interface Plugin {
      *
      * <p>
      * Note that logging is disabled by default. To enable logging, maintain the alt/option key down while opening the
-     * tray menu/menubar and enable Debug Logs. Future logs will be saved to disk in the folder
-     * {@code ~/Library/Logs/StreamDeck/} on macOS and {@code %appdata%\Roaming\Elgato\StreamDeck\logs\} on Windows.
-     * Note that the log files are rotated each time the Stream Deck application is relaunched.
+     * tray menu/menubar and enable Debug Logs. Future logs will be saved to disk in the folder {@code
+     * ~/Library/Logs/StreamDeck/} on macOS and {@code %appdata%\Roaming\Elgato\StreamDeck\logs\} on Windows. Note that
+     * the log files are rotated each time the Stream Deck application is relaunched.
      * </p>
      *
      * @param message The message to send to the logs file.
-     *
      * @since StreamDeck 4.1
      */
     void logMessage(@Nonnull String message);

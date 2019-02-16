@@ -206,12 +206,12 @@ public final class PluginImpl implements Plugin {
     }
 
     public int getFontStyle(String fontStyle) {
-        fontStyle = fontStyle.toLowerCase();
-        if (fontStyle.contains("bold") && fontStyle.contains("italic"))
+        final String lowerFontStyle = fontStyle.toLowerCase();
+        if (lowerFontStyle.contains("bold") && lowerFontStyle.contains("italic"))
             return Font.BOLD + Font.ITALIC;
-        else if (fontStyle.contains("bold"))
+        else if (lowerFontStyle.contains("bold"))
             return Font.BOLD;
-        else if (fontStyle.contains("italic"))
+        else if (lowerFontStyle.contains("italic"))
             return Font.ITALIC;
         else
             return Font.PLAIN;
@@ -473,12 +473,13 @@ public final class PluginImpl implements Plugin {
     @Override
     public void setImage(@Nonnull String context, String base64Encoded, String type, Destination destination) {
         logger.trace("setImage(context, base64Encoded, type, destination)");
-        if (!base64Encoded.startsWith("data:image")) {
-            base64Encoded = "data:image/" + type + ";base64," + base64Encoded;
+        String encodedData = base64Encoded;
+        if (!encodedData.startsWith("data:image")) {
+            encodedData = "data:image/" + type + ";base64," + base64Encoded;
         }
 
         JsonObject payload = new JsonObject();
-        payload.addProperty("image", base64Encoded);
+        payload.addProperty("image", encodedData);
         payload.addProperty("target", destination.ordinal());
         sendEvent(SDEvent.SET_IMAGE, payload, context);
     }

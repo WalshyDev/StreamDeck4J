@@ -1,10 +1,35 @@
 package com.walshydev.streamdeck4j.hooks;
 
-// TODO: Document
-
 import com.walshydev.streamdeck4j.events.*;
 import com.walshydev.streamdeck4j.utils.SD4JLogger;
 
+/**
+ * An abstract implementation of {@link EventListener EventListener} which divides {@link Event Events}
+ * for you.
+ *
+ * <p><b>Example:</b>
+ * <br><pre><code>
+ * public class MyListener extends ListenerAdapter
+ * {
+ *    {@literal @Override}
+ *     public void onActionAppeared(ActionAppearedEvent event) {
+ *         event.getPlugin().setTitle(event.getContext(), "Started!", Destination.HARDWARE_AND_SOFTWARE);
+ *     }
+ *
+ *    {@literal @Override}
+ *     public void onKeyUp(KeyUpEvent event) {
+ *         try {
+ *             event.getPlugin().openURL(new URL("https://walshydev.com"));
+ *         } catch (MalformedURLException e) {
+ *             logger.error("Malformed URL for some reason...", e);
+ *         }
+ *     }
+ * }
+ * </code></pre>
+ *
+ * @see EventListener EventListener
+ */
+@SuppressWarnings("WeakerAccess")
 public abstract class AbstractListener implements EventListener {
 
     public void onActionAppeared(ActionAppearedEvent event) {
