@@ -7,24 +7,22 @@ import lombok.Getter;
 
 import javax.annotation.Nonnull;
 
-@Getter(onMethod_ = {@Nonnull})
-public class ActionAppearedEvent extends Event {
+@Getter
+public class DidReceiveSettingsEvent extends Event {
 
     private final String action;
     private final String deviceId;
     private final JsonObject settings;
     private final Coordinates coordinates;
-    private final int state;
     private final boolean multiAction;
 
-    public ActionAppearedEvent(
+    public DidReceiveSettingsEvent(
         @Nonnull Plugin plugin,
         @Nonnull String context,
         @Nonnull String action,
         @Nonnull String deviceId,
         @Nonnull JsonObject settings,
         @Nonnull Coordinates coordinates,
-        int state,
         boolean multiAction
     ) {
         super(plugin, context);
@@ -32,7 +30,7 @@ public class ActionAppearedEvent extends Event {
         this.deviceId = deviceId;
         this.settings = settings;
         this.coordinates = coordinates;
-        this.state = state;
         this.multiAction = multiAction;
     }
+
 }

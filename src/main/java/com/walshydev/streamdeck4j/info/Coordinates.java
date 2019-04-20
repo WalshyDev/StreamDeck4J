@@ -1,8 +1,10 @@
 package com.walshydev.streamdeck4j.info;
 
+import lombok.EqualsAndHashCode;
 import lombok.Getter;
 
 @Getter
+@EqualsAndHashCode
 public class Coordinates {
 
     private final int column;

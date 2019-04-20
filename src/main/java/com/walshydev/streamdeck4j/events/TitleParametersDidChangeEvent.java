@@ -1,6 +1,7 @@
 package com.walshydev.streamdeck4j.events;
 
 import com.google.gson.JsonObject;
+import com.walshydev.streamdeck4j.Plugin;
 import com.walshydev.streamdeck4j.info.Alignment;
 import com.walshydev.streamdeck4j.info.Coordinates;
 import lombok.Getter;
@@ -25,6 +26,7 @@ public class TitleParametersDidChangeEvent extends Event {
     private final Alignment alignment;
 
     public TitleParametersDidChangeEvent(
+        @Nonnull Plugin plugin,
         @Nonnull String context,
         @Nonnull String action,
         @Nonnull String deviceId,
@@ -37,7 +39,7 @@ public class TitleParametersDidChangeEvent extends Event {
         @Nonnull Color titleColor,
         @Nonnull Alignment alignment
     ) {
-        super(context);
+        super(plugin, context);
         this.action = action;
         this.deviceId = deviceId;
         this.settings = settings;

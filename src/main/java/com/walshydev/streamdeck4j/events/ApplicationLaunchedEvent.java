@@ -1,5 +1,6 @@
 package com.walshydev.streamdeck4j.events;
 
+import com.walshydev.streamdeck4j.Plugin;
 import lombok.Getter;
 
 import javax.annotation.Nonnull;
@@ -10,9 +11,10 @@ public class ApplicationLaunchedEvent extends Event {
     private final String applicationName;
 
     public ApplicationLaunchedEvent(
+        @Nonnull Plugin plugin,
         @Nonnull String applicationName
     ) {
-        super(null);
+        super(plugin, null);
         this.applicationName = applicationName;
     }
 

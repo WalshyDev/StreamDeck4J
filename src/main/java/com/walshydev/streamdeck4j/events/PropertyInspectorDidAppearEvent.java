@@ -6,16 +6,19 @@ import lombok.Getter;
 import javax.annotation.Nonnull;
 
 @Getter
-public class DeviceDisconnectedEvent extends Event {
+public class PropertyInspectorDidAppearEvent extends Event {
 
+    private final String action;
     private final String deviceId;
 
-    public DeviceDisconnectedEvent(
+    public PropertyInspectorDidAppearEvent(
         @Nonnull Plugin plugin,
+        @Nonnull String context,
+        @Nonnull String action,
         @Nonnull String deviceId
     ) {
-        super(plugin, null);
+        super(plugin, context);
+        this.action = action;
         this.deviceId = deviceId;
     }
-
 }
